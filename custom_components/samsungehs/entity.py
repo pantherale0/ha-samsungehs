@@ -1,12 +1,12 @@
 """BlueprintEntity class."""
 
 from __future__ import annotations
+
 from typing import Any
 
 from homeassistant.config_entries import ConfigSubentry
 from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
-
 from pysamsungnasa.device import NasaDevice
 
 from .const import DOMAIN
@@ -16,7 +16,15 @@ from .coordinator import SamsungEhsDataUpdateCoordinator
 class SamsungEhsEntity(CoordinatorEntity[SamsungEhsDataUpdateCoordinator]):
     """Samsung EHS class."""
 
-    def __init__(self, coordinator: SamsungEhsDataUpdateCoordinator, message_number: int | None, key: str, subentry: ConfigSubentry | None) -> None:
+    _attr_has_entity_name = True
+
+    def __init__(
+        self,
+        coordinator: SamsungEhsDataUpdateCoordinator,
+        message_number: int | None,
+        key: str,
+        subentry: ConfigSubentry | None,
+    ) -> None:
         """Initialize."""
         super().__init__(coordinator)
         entry_id = coordinator.config_entry.entry_id
@@ -52,21 +60,19 @@ class SamsungEhsEntity(CoordinatorEntity[SamsungEhsDataUpdateCoordinator]):
     async def async_added_to_hass(self) -> None:
         await super().async_added_to_hass()
         if self._message_number is not None and self._device_address is not None:
-            self.coordinator.messages_to_read.setdefault(self._device_address, []).append(self._message_number)
+            self.coordinator.messages_to_read.setdefault(
+                self._device_address, []
+            ).append(self._message_number)
             await self.coordinator.config_entry.runtime_data.client.client.nasa_read(
                 msgs=[self._message_number],
             )
         if self._device is None:
             return
 
-        return self._device.add_device_callback(
-            self._callback
-        )
+        return self._device.add_device_callback(self._callback)
 
     async def async_will_remove_from_hass(self) -> None:
         await super().async_will_remove_from_hass()
         if self._device is None:
             return
-        return self._device.remove_device_callback(
-            self._callback
-        )
+        return self._device.remove_device_callback(self._callback)

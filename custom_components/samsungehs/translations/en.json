@@ -1,0 +1,52 @@
+{
+    "config": {
+        "step": {
+            "user": {
+                "data": {
+                    "host": "IP Address",
+                    "port": "Port"
+                }
+            }
+        }
+    },
+    "config_subentires": {
+        "device": {
+            "initiate_flow": {
+                "user": "Add NASA Device"
+            },
+            "step": {
+                "user": {
+                    "data": {
+                        "address": "NASA Address",
+                        "sensors": "Extra sensors (message numbers)"
+                    }
+                }
+            }
+        }
+    },
+    "entity": {
+        "sensor": {
+            "available_attributes": {
+                "name": "Available Attributes"
+            }
+        },
+        "binary_sensor": {
+            "connected": {
+                "name": "Connected"
+            },
+            "online": {
+                "name": "Online"
+            }
+        },
+        "climate": {
+            "heating": {
+                "name": "Central Heating"
+            }
+        },
+        "water_heater": {
+            "dhw": {
+                "name": "Hot Water"
+            }
+        }
+    }
+}

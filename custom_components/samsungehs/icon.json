@@ -1,0 +1,731 @@
+{
+    "entity": {
+        "sensor": {
+            "514": {
+                "default": "mdi:thermometer"
+            },
+            "519": {
+                "default": "mdi:arrow-up-down"
+            },
+            "3330": {
+                "default": "mdi:thermometer-lines"
+            },
+            "3331": {
+                "default": "mdi:thermometer-lines"
+            },
+            "3332": {
+                "default": "mdi:thermometer-lines"
+            },
+            "3333": {
+                "default": "mdi:thermometer-lines"
+            },
+            "3334": {
+                "default": "mdi:thermometer-lines"
+            },
+            "3335": {
+                "default": "mdi:thermometer-lines"
+            },
+            "3336": {
+                "default": "mdi:thermometer-lines"
+            },
+            "3337": {
+                "default": "mdi:thermometer-lines"
+            },
+            "3338": {
+                "default": "mdi:thermometer-lines"
+            },
+            "3339": {
+                "default": "mdi:thermometer-lines"
+            },
+            "3340": {
+                "default": "mdi:thermometer-lines"
+            },
+            "3341": {
+                "default": "mdi:thermometer-lines"
+            },
+            "9468": {
+                "default": "mdi:current-ac"
+            },
+            "10492": {
+                "default": "mdi:lightning-bolt-circle"
+            },
+            "16384": {
+                "default": "mdi:power"
+            },
+            "16385": {
+                "default": "mdi:hvac"
+            },
+            "16386": {
+                "default": "mdi:hvac"
+            },
+            "16389": {
+                "default": "mdi:ventilation"
+            },
+            "16390": {
+                "default": "mdi:fan"
+            },
+            "16391": {
+                "default": "mdi:fan"
+            },
+            "16392": {
+                "default": "mdi:fan"
+            },
+            "16401": {
+                "default": "mdi:arrow-up-down"
+            },
+            "16402": {
+                "default": "mdi:arrow-up-down"
+            },
+            "16424": {
+                "default": "mdi:thermostat"
+            },
+            "16440": {
+                "default": "mdi:water-percent"
+            },
+            "16480": {
+                "default": "mdi:home-off"
+            },
+            "16485": {
+                "default": "mdi:water-heater"
+            },
+            "16486": {
+                "default": "mdi:water-heater"
+            },
+            "16489": {
+                "default": "mdi:home-thermometer"
+            },
+            "16490": {
+                "default": "mdi:home-thermometer"
+            },
+            "16492": {
+                "default": "mdi:heat-pump"
+            },
+            "16510": {
+                "default": "mdi:arrow-left-right"
+            },
+            "16522": {
+                "default": "mdi:valves"
+            },
+            "16531": {
+                "default": "mdi:water-thermometer"
+            },
+            "16532": {
+                "default": "mdi:water-thermometer"
+            },
+            "16533": {
+                "default": "mdi:thermostat"
+            },
+            "16534": {
+                "default": "mdi:thermostat"
+            },
+            "16535": {
+                "default": "mdi:water-boiler"
+            },
+            "16537": {
+                "default": "mdi:clock-fast"
+            },
+            "16538": {
+                "default": "mdi:calendar"
+            },
+            "16539": {
+                "default": "mdi:clock-fast"
+            },
+            "16541": {
+                "default": "mdi:cog"
+            },
+            "16542": {
+                "default": "mdi:cog"
+            },
+            "16545": {
+                "default": "mdi:cog"
+            },
+            "16546": {
+                "default": "mdi:cog"
+            },
+            "16547": {
+                "default": "mdi:cog"
+            },
+            "16548": {
+                "default": "mdi:cog"
+            },
+            "16572": {
+                "default": "mdi:home-vacancy"
+            },
+            "16598": {
+                "default": "mdi:history"
+            },
+            "16641": {
+                "default": "mdi:water-pump"
+            },
+            "16642": {
+                "default": "mdi:check-flow"
+            },
+            "16657": {
+                "default": "mdi:auto-fix"
+            },
+            "16675": {
+                "default": "mdi:solar-power"
+            },
+            "16677": {
+                "default": "mdi:content-save"
+            },
+            "16679": {
+                "default": "mdi:cog"
+            },
+            "16680": {
+                "default": "mdi:cog"
+            },
+            "16681": {
+                "default": "mdi:cog"
+            },
+            "16685": {
+                "default": "mdi:content-save-edit"
+            },
+            "16992": {
+                "default": "mdi:thermometer-water"
+            },
+            "16993": {
+                "default": "mdi:thermometer-water"
+            },
+            "16994": {
+                "default": "mdi:thermometer-water"
+            },
+            "16995": {
+                "default": "mdi:timer"
+            },
+            "16996": {
+                "default": "mdi:timer"
+            },
+            "16997": {
+                "default": "mdi:timer"
+            },
+            "16998": {
+                "default": "mdi:timer"
+            },
+            "16999": {
+                "default": "mdi:thermometer"
+            },
+            "17001": {
+                "default": "mdi:clock-time-four"
+            },
+            "17002": {
+                "default": "mdi:thermometer"
+            },
+            "17003": {
+                "default": "mdi:timer"
+            },
+            "17006": {
+                "default": "mdi:clock-time-four"
+            },
+            "17141": {
+                "default": "mdi:thermometer"
+            },
+            "17143": {
+                "default": "mdi:thermometer"
+            },
+            "17144": {
+                "default": "mdi:thermometer"
+            },
+            "17193": {
+                "default": "mdi:thermometer"
+            },
+            "17207": {
+                "default": "mdi:thermometer-water"
+            },
+            "17208": {
+                "default": "mdi:thermometer-water"
+            },
+            "17223": {
+                "default": "mdi:water-outlet"
+            },
+            "17224": {
+                "default": "mdi:water-pump"
+            },
+            "17446": {
+                "default": "mdi:solar-power"
+            },
+            "32770": {
+                "default": "mdi:information"
+            },
+            "32774": {
+                "default": "mdi:numeric-1-circle"
+            },
+            "32775": {
+                "default": "mdi:home-thermometer-outline"
+            },
+            "32800": {
+                "default": "mdi:information"
+            },
+            "33310": {
+                "default": "mdi:thermometer"
+            },
+            "33322": {
+                "default": "mdi:thermometer"
+            },
+            "33347": {
+                "default": "mdi:thermometer-chevron-up"
+            },
+            "33348": {
+                "default": "mdi:thermometer-chevron-down"
+            },
+            "33351": {
+                "default": "mdi:thermometer-water"
+            },
+            "33352": {
+                "default": "mdi:thermometer-water"
+            },
+            "33437": {
+                "default": "mdi:information"
+            },
+            "33470": {
+                "default": "mdi:information"
+            },
+            "33482": {
+                "default": "mdi:information"
+            },
+            "33516": {
+                "default": "mdi:information"
+            },
+            "33533": {
+                "default": "mdi:information"
+            },
+            "33542": {
+                "default": "mdi:fan"
+            },
+            "33543": {
+                "default": "mdi:fan"
+            },
+            "33651": {
+                "default": "mdi:information"
+            },
+            "33652": {
+                "default": "mdi:information"
+            },
+            "33663": {
+                "default": "mdi:information"
+            },
+            "33664": {
+                "default": "mdi:information"
+            },
+            "33665": {
+                "default": "mdi:information"
+            },
+            "33666": {
+                "default": "mdi:information"
+            },
+            "33667": {
+                "default": "mdi:information"
+            },
+            "33668": {
+                "default": "mdi:information"
+            },
+            "33724": {
+                "default": "mdi:information"
+            },
+            "33746": {
+                "default": "mdi:information"
+            },
+            "33791": {
+                "default": "mdi:information"
+            },
+            "33827": {
+                "default": "mdi:information"
+            },
+            "33829": {
+                "default": "mdi:information"
+            },
+            "33830": {
+                "default": "mdi:information"
+            },
+            "33831": {
+                "default": "mdi:information"
+            },
+            "33834": {
+                "default": "mdi:information"
+            },
+            "33835": {
+                "default": "mdi:information"
+            },
+            "33836": {
+                "default": "mdi:information"
+            },
+            "33837": {
+                "default": "mdi:information"
+            },
+            "33838": {
+                "default": "mdi:information"
+            },
+            "33839": {
+                "default": "mdi:information"
+            },
+            "33840": {
+                "default": "mdi:information"
+            },
+            "33841": {
+                "default": "mdi:information"
+            },
+            "33842": {
+                "default": "mdi:information"
+            },
+            "33868": {
+                "default": "mdi:solar-panel"
+            },
+            "33966": {
+                "default": "mdi:information"
+            },
+            "33967": {
+                "default": "mdi:information"
+            },
+            "34091": {
+                "default": "mdi:information"
+            },
+            "34107": {
+                "default": "mdi:information"
+            },
+            "34108": {
+                "default": "mdi:information"
+            },
+            "34123": {
+                "default": "mdi:information"
+            },
+            "34155": {
+                "default": "mdi:information"
+            },
+            "34156": {
+                "default": "mdi:information"
+            },
+            "34157": {
+                "default": "mdi:information"
+            },
+            "34158": {
+                "default": "mdi:information"
+            },
+            "34159": {
+                "default": "mdi:information"
+            },
+            "34160": {
+                "default": "mdi:information"
+            },
+            "34161": {
+                "default": "mdi:information"
+            },
+            "34162": {
+                "default": "mdi:information"
+            },
+            "34163": {
+                "default": "mdi:information"
+            },
+            "34164": {
+                "default": "mdi:information"
+            },
+            "34165": {
+                "default": "mdi:information"
+            },
+            "34166": {
+                "default": "mdi:information"
+            },
+            "34167": {
+                "default": "mdi:information"
+            },
+            "34168": {
+                "default": "mdi:information"
+            },
+            "34169": {
+                "default": "mdi:information"
+            },
+            "34170": {
+                "default": "mdi:information"
+            },
+            "34171": {
+                "default": "mdi:information"
+            },
+            "34172": {
+                "default": "mdi:information"
+            },
+            "34173": {
+                "default": "mdi:information"
+            },
+            "34174": {
+                "default": "mdi:information"
+            },
+            "34175": {
+                "default": "mdi:information"
+            },
+            "34176": {
+                "default": "mdi:information"
+            },
+            "34177": {
+                "default": "mdi:information"
+            },
+            "34178": {
+                "default": "mdi:information"
+            },
+            "34179": {
+                "default": "mdi:information"
+            },
+            "34180": {
+                "default": "mdi:information"
+            },
+            "34181": {
+                "default": "mdi:information"
+            },
+            "34182": {
+                "default": "mdi:information"
+            },
+            "34183": {
+                "default": "mdi:information"
+            },
+            "34184": {
+                "default": "mdi:information"
+            },
+            "34185": {
+                "default": "mdi:information"
+            },
+            "34186": {
+                "default": "mdi:information"
+            },
+            "34187": {
+                "default": "mdi:information"
+            },
+            "34188": {
+                "default": "mdi:information"
+            },
+            "34189": {
+                "default": "mdi:information"
+            },
+            "34190": {
+                "default": "mdi:information"
+            },
+            "34191": {
+                "default": "mdi:information"
+            },
+            "34192": {
+                "default": "mdi:information"
+            },
+            "34193": {
+                "default": "mdi:information"
+            },
+            "34194": {
+                "default": "mdi:information"
+            },
+            "34195": {
+                "default": "mdi:information"
+            },
+            "34196": {
+                "default": "mdi:information"
+            },
+            "34197": {
+                "default": "mdi:information"
+            },
+            "34198": {
+                "default": "mdi:information"
+            },
+            "34199": {
+                "default": "mdi:information"
+            },
+            "34200": {
+                "default": "mdi:information"
+            },
+            "34201": {
+                "default": "mdi:information"
+            },
+            "34202": {
+                "default": "mdi:information"
+            },
+            "34203": {
+                "default": "mdi:information"
+            },
+            "34204": {
+                "default": "mdi:information"
+            },
+            "34205": {
+                "default": "mdi:information"
+            },
+            "34206": {
+                "default": "mdi:information"
+            },
+            "34207": {
+                "default": "mdi:information"
+            },
+            "34208": {
+                "default": "mdi:information"
+            },
+            "34209": {
+                "default": "mdi:information"
+            },
+            "34210": {
+                "default": "mdi:information"
+            },
+            "34211": {
+                "default": "mdi:information"
+            },
+            "34212": {
+                "default": "mdi:information"
+            },
+            "34213": {
+                "default": "mdi:information"
+            },
+            "34214": {
+                "default": "mdi:information"
+            },
+            "34215": {
+                "default": "mdi:information"
+            },
+            "34216": {
+                "default": "mdi:information"
+            },
+            "34217": {
+                "default": "mdi:information"
+            },
+            "34218": {
+                "default": "mdi:information"
+            },
+            "34219": {
+                "default": "mdi:information"
+            },
+            "34220": {
+                "default": "mdi:information"
+            },
+            "34221": {
+                "default": "mdi:information"
+            },
+            "34222": {
+                "default": "mdi:information"
+            },
+            "34223": {
+                "default": "mdi:information"
+            },
+            "34224": {
+                "default": "mdi:information"
+            },
+            "34225": {
+                "default": "mdi:information"
+            },
+            "34226": {
+                "default": "mdi:information"
+            },
+            "34227": {
+                "default": "mdi:information"
+            },
+            "34228": {
+                "default": "mdi:information"
+            },
+            "34229": {
+                "default": "mdi:information"
+            },
+            "34230": {
+                "default": "mdi:information"
+            },
+            "34231": {
+                "default": "mdi:information"
+            },
+            "34232": {
+                "default": "mdi:information"
+            },
+            "34233": {
+                "default": "mdi:information"
+            },
+            "34234": {
+                "default": "mdi:information"
+            },
+            "34235": {
+                "default": "mdi:information"
+            },
+            "34236": {
+                "default": "mdi:information"
+            },
+            "34237": {
+                "default": "mdi:information"
+            },
+            "34238": {
+                "default": "mdi:information"
+            },
+            "34239": {
+                "default": "mdi:information"
+            },
+            "34240": {
+                "default": "mdi:information"
+            },
+            "34241": {
+                "default": "mdi:information"
+            },
+            "34242": {
+                "default": "mdi:information"
+            },
+            "34243": {
+                "default": "mdi:information"
+            },
+            "34244": {
+                "default": "mdi:information"
+            },
+            "34245": {
+                "default": "mdi:information"
+            },
+            "34246": {
+                "default": "mdi:information"
+            },
+            "34247": {
+                "default": "mdi:information"
+            },
+            "34248": {
+                "default": "mdi:information"
+            },
+            "34249": {
+                "default": "mdi:information"
+            },
+            "34250": {
+                "default": "mdi:information"
+            },
+            "34251": {
+                "default": "mdi:information"
+            },
+            "34252": {
+                "default": "mdi:information"
+            },
+            "34253": {
+                "default": "mdi:information"
+            },
+            "34254": {
+                "default": "mdi:information"
+            },
+            "34255": {
+                "default": "mdi:information"
+            },
+            "34256": {
+                "default": "mdi:information"
+            },
+            "34257": {
+                "default": "mdi:information"
+            },
+            "34258": {
+                "default": "mdi:information"
+            },
+            "34259": {
+                "default": "mdi:information"
+            },
+            "34260": {
+                "default": "mdi:information"
+            },
+            "34261": {
+                "default": "mdi:information"
+            },
+            "34262": {
+                "default": "mdi:information"
+            },
+            "34263": {
+                "default": "mdi:information"
+            },
+            "34264": {
+                "default": "mdi:information"
+            },
+            "39676": {
+                "default": "mdi:current-ac"
+            }
+        },
+        "water_heater": {
+            "dhw": {
+                "default": "mdi:water-boiler"
+            }
+        }
+    }
+}

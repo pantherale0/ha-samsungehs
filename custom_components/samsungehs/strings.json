@@ -1,0 +1,71 @@
+{
+    "config": {
+        "step": {
+            "user": {
+                "data": {
+                    "host": "IP Address",
+                    "port": "Port"
+                }
+            }
+        }
+    },
+    "config_subentires": {
+        "device": {
+            "initiate_flow": {
+                "user": "Add NASA Device"
+            },
+            "step": {
+                "user": {
+                    "data": {
+                        "address": "NASA Address",
+                        "sensors": "Extra sensors (message numbers)"
+                    }
+                }
+            }
+        }
+    },
+    "entity": {
+        "sensor": {
+            "outdoor_top_sensor_temperature_1": {
+                "name": "Outdoor Top Sensor Temperature 1"
+            },
+            "outdoor_compressor_target_frequency": {
+                "name": "Outdoor Compressor Target Frequency"
+            },
+            "outdoor_fan_rpm": {
+                "name": "Outdoor Fan RPM"
+            },
+            "last_packet_received": {
+                "name": "Last Packet Received"
+            },
+            "indoor_dhw_current_temperature": {
+                "name": "DHW Current Temperature"
+            },
+            "indoor_dhw_target_temperature": {
+                "name": "DHW Target Temperature"
+            },
+            "indoor_flow_temperature": {
+                "name": "Flow Temperature"
+            }
+        },
+        "binary_sensor": {
+            "connected": {
+                "name": "Connected"
+            },
+            "online": {
+                "name": "Online"
+            }
+        },
+        "climate": {
+            "heating": {
+                "name": "Central Heating"
+            }
+        },
+        "water_heater": {
+            "dhw": {
+                "name": "Hot Water",
+                "icon": "mdi:water-boiler"
+            }
+        }
+    }
+}

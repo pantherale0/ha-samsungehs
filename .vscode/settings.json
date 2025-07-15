@@ -1,0 +1,12 @@
+{
+  "python.analysis.extraPaths": ["/home/jordan/Documents/repos/pysamsungnasa"],
+  "files.eol": "\n",
+  "editor.formatOnSave": true,
+  "editor.formatOnPaste": true,
+  "files.trimTrailingWhitespace": true,
+  "python.analysis.typeCheckingMode": "basic",
+  "python.analysis.autoImportCompletions": true,
+  "[python]": {
+    "editor.defaultFormatter": "charliermarsh.ruff"
+  }
+}
