@@ -1,0 +1,8 @@
+{
+  "name": "Samsung EHS",
+  "content_in_root": false,
+  "filename": "samsungehs.zip",
+  "homeassistant": "2025.4.0",
+  "render_readme": true,
+  "zip_release": true
+}
