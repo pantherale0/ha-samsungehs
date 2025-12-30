@@ -71,6 +71,7 @@ OUTDOOR_ENTITY_DESCRIPTIONS: tuple[SamsungEhsSensorEntityDescription, ...] = (
         key=SamsungEhsSensorKey.OUTDOOR_TEMPERATURE,
         translation_key=SamsungEhsSensorKey.OUTDOOR_TEMPERATURE,
         device_class=SensorDeviceClass.TEMPERATURE,
+        state_class=SensorStateClass.MEASUREMENT,
         native_unit_of_measurement=UnitOfTemperature.CELSIUS,
         value_fn=lambda device: device.outdoor_temperature,
     ),
@@ -86,6 +87,7 @@ OUTDOOR_ENTITY_DESCRIPTIONS: tuple[SamsungEhsSensorEntityDescription, ...] = (
         value_fn=lambda device: device.power_generated_last_minute,
         native_unit_of_measurement=UnitOfPower.KILO_WATT,
         device_class=SensorDeviceClass.POWER,
+        state_class=SensorStateClass.MEASUREMENT,
     ),
     SamsungEhsSensorEntityDescription(
         key=SamsungEhsSensorKey.ENERGY_CONSUMPTION,
@@ -109,6 +111,7 @@ OUTDOOR_ENTITY_DESCRIPTIONS: tuple[SamsungEhsSensorEntityDescription, ...] = (
         value_fn=lambda device: device.power_consumption,
         native_unit_of_measurement=UnitOfPower.KILO_WATT,
         device_class=SensorDeviceClass.POWER,
+        state_class=SensorStateClass.MEASUREMENT,
     ),
 )
 
