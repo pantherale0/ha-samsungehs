@@ -45,6 +45,39 @@ The Samsung EHS climate system supports the following HVAC modes:
 
 You can change the HVAC mode and set target temperatures through Home Assistant's climate card or automations. The integration will send the corresponding command to your Samsung EHS device.
 
+## HVAC Actions
+
+In addition to HVAC modes, the integration reports the current **HVAC action** - what the system is actually doing at any given moment. This is different from the HVAC mode (what you've set it to do) and is useful for automations and status monitoring.
+
+### HVAC Action States
+
+| Action | Description | Conditions |
+|---|---|---|
+| **Off** | System is powered off | Power switch is off |
+| **Heating** | System is actively heating | Mode is Heat AND outdoor unit running normally |
+| **Cooling** | System is actively cooling | Mode is Cool AND outdoor unit running normally |
+| **Idle** | System is on but not heating/cooling | Power is on, but no active heating/cooling demand |
+| **Preheating** | System is in safety/preheat mode | Outdoor unit in safety operation (OP_SAFETY) |
+| **Defrosting** | System is defrosting | Defrost cycle is active on outdoor or indoor unit |
+
+### How HVAC Actions Work
+
+The integration monitors several parameters to determine the current action:
+
+- **Power State**: Whether the system is powered on or off
+- **HVAC Mode**: The currently selected mode (Heat, Cool, Fan, Auto)
+- **Outdoor Unit Status**: Monitors if the outdoor heat pump unit is running normally (OP_NORMAL), in safety mode (OP_SAFETY), or stopped
+- **Defrost Status**: Detects when the system is in defrost cycle to prevent ice buildup
+
+**Example Scenarios**:
+
+- **Heating without demand**: HVAC mode is Heat, system is on, but room temperature is at target → Action shows "Idle"
+- **Heating with defrost**: System needs to heat but defrost cycle is active → Action shows "Defrosting"
+- **System shutdown**: Power is off → Action shows "Off" regardless of mode setting
+- **Cold startup**: System starting up and warming before normal operation → Action shows "Preheating"
+
+This information is exposed as the `hvac_action` attribute in Home Assistant and can be used in automations to trigger actions based on what the system is actually doing, not just what mode it's in.
+
 ## Hardware Configuration
 
 Samsung EHS devices communicate via the NASА protocol over RS485/serial connection. Since most systems won't have direct serial access, you'll need to set up a UART bridge to connect your Home Assistant instance to the Samsung EHS device.
