@@ -2,28 +2,32 @@
 
 from __future__ import annotations
 
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
-from homeassistant.core import HomeAssistant
-from homeassistant.const import UnitOfTemperature
-from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
 from homeassistant.components.climate import ClimateEntity, ClimateEntityDescription
 from homeassistant.components.climate.const import (
-    HVACMode,
-    HVACAction,
     ClimateEntityFeature,
+    HVACAction,
+    HVACMode,
 )
-
+from homeassistant.const import UnitOfTemperature
+from pysamsungnasa.helpers import Address
 from pysamsungnasa.protocol.enum import (
+    AddressClass,
     InOperationMode,
-    OutdoorOperationStatus,
     OutdoorIndoorDefrostStep,
+    OutdoorOperationStatus,
 )
 
-from custom_components.samsungehs.coordinator import SamsungEhsDataUpdateCoordinator
-
-from .data import SamsungEhsConfigEntry
 from .entity import SamsungEhsEntity
+
+if TYPE_CHECKING:
+    from homeassistant.core import HomeAssistant
+    from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
+
+    from custom_components.samsungehs.coordinator import SamsungEhsDataUpdateCoordinator
+
+    from .data import SamsungEhsConfigEntry
 
 EHS_OP_TO_HASS = {
     InOperationMode.AUTO: HVACMode.AUTO,
@@ -33,7 +37,7 @@ EHS_OP_TO_HASS = {
     None: HVACMode.OFF,
 }
 
-HASS_TO_EHS_OP = dict((v, k) for k, v in EHS_OP_TO_HASS.items())
+HASS_TO_EHS_OP = {v: k for k, v in EHS_OP_TO_HASS.items()}
 
 ENTITY_DESCRIPTIONS: tuple[ClimateEntityDescription, ...] = (
     ClimateEntityDescription(key="heating"),
@@ -41,14 +45,15 @@ ENTITY_DESCRIPTIONS: tuple[ClimateEntityDescription, ...] = (
 
 
 async def async_setup_entry(
-    hass: HomeAssistant,  # noqa: ARG001 Unused function argument
+    hass: HomeAssistant,  # noqa: ARG001
     entry: SamsungEhsConfigEntry,
     async_add_entities: AddConfigEntryEntitiesCallback,
 ) -> None:
     """Set up the water heater platform."""
     for subentry in entry.subentries.values():
         assert subentry.unique_id is not None  # noqa: S101
-        if subentry.unique_id.startswith("20"):
+        address = Address.parse(subentry.unique_id)
+        if address.class_id is AddressClass.INDOOR:
             async_add_entities(
                 (
                     SamsungEhsClimate(

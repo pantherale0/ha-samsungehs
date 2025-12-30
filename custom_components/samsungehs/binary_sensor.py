@@ -2,26 +2,38 @@
 
 from __future__ import annotations
 
-from collections.abc import Callable
 from dataclasses import dataclass
+from enum import StrEnum
+from typing import TYPE_CHECKING
 
 from homeassistant.components.binary_sensor import (
     BinarySensorDeviceClass,
     BinarySensorEntity,
     BinarySensorEntityDescription,
 )
-
 from pysamsungnasa.helpers import Address
 from pysamsungnasa.protocol.enum import AddressClass
-from homeassistant.core import HomeAssistant
-from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
 
 from .entity import SamsungEhsEntity
-from .coordinator import SamsungEhsDataUpdateCoordinator
-from .data import SamsungEhsConfigEntry
+
+if TYPE_CHECKING:
+    from collections.abc import Callable
+
+    from homeassistant.core import HomeAssistant
+    from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
+
+    from .coordinator import SamsungEhsDataUpdateCoordinator
+    from .data import SamsungEhsConfigEntry
 
 
-@dataclass(frozen=True)
+class SamsungEhsBinarySensorKey(StrEnum):
+    """Samsung EHS Binary Sensor Keys."""
+
+    CONNECTED = "connected"
+    ONLINE = "online"
+
+
+@dataclass(frozen=True, kw_only=True)
 class SamsungEhsBinarySensorEntityDescription(BinarySensorEntityDescription):
     """Description for Samsung EHS binary sensor entities."""
 
@@ -29,9 +41,10 @@ class SamsungEhsBinarySensorEntityDescription(BinarySensorEntityDescription):
     is_on_fn: Callable[[SamsungEhsEntity], bool] | None = None
 
 
-INTEGRATION_ENTITY_DESCRIPTIONS = (
+INTEGRATION_ENTITY_DESCRIPTIONS: tuple[SamsungEhsBinarySensorEntityDescription, ...] = (
     SamsungEhsBinarySensorEntityDescription(
-        key="connected",
+        key=SamsungEhsBinarySensorKey.CONNECTED,
+        translation_key=SamsungEhsBinarySensorKey.CONNECTED,
         device_class=BinarySensorDeviceClass.CONNECTIVITY,
         is_on_fn=lambda entity: entity.coordinator.config_entry.runtime_data.client.client.is_connected,
     ),
@@ -39,7 +52,8 @@ INTEGRATION_ENTITY_DESCRIPTIONS = (
 
 ALL_ENTITY_DESCRIPTIONS = (
     SamsungEhsBinarySensorEntityDescription(
-        key="online",
+        key=SamsungEhsBinarySensorKey.ONLINE,
+        translation_key=SamsungEhsBinarySensorKey.ONLINE,
         device_class=BinarySensorDeviceClass.CONNECTIVITY,
         is_on_fn=lambda entity: entity._device is not None,
     ),
@@ -79,6 +93,8 @@ async def async_setup_entry(
             ),
             config_subentry_id=subentry.subentry_id,
         )
+        if not isinstance(subentry.unique_id, str):
+            continue
         address = Address.parse(subentry.unique_id)
         if address.class_id == AddressClass.OUTDOOR:
             # Add outdoor sensors
@@ -124,7 +140,9 @@ class SamsungEhsBinarySensor(SamsungEhsEntity, BinarySensorEntity):
             message_number=entity_description.message_number,
             key=entity_description.key,
         )
-        self.entity_description = entity_description
+        self.entity_description: SamsungEhsBinarySensorEntityDescription = (
+            entity_description
+        )
 
     @property
     def is_on(self) -> bool:
@@ -136,5 +154,5 @@ class SamsungEhsBinarySensor(SamsungEhsEntity, BinarySensorEntity):
             and self._device is not None
             and self._message_number in self._device.attributes
         ):
-            return self._device.attributes.get(self._message_number).VALUE
+            return self._device.attributes[self._message_number].VALUE
         return False

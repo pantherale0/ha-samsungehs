@@ -14,17 +14,18 @@ from homeassistant.components.water_heater import (
     WaterHeaterEntityFeature,
 )
 from homeassistant.const import STATE_OFF, UnitOfTemperature
+from pysamsungnasa.device import IndoorNasaDevice
+from pysamsungnasa.helpers import Address
+from pysamsungnasa.protocol.enum import AddressClass, DhwOpMode
+
+from .entity import SamsungEhsEntity
 
 if TYPE_CHECKING:
     from homeassistant.core import HomeAssistant
     from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
-from pysamsungnasa.protocol.enum import DhwOpMode
 
-if TYPE_CHECKING:
     from .coordinator import SamsungEhsDataUpdateCoordinator
     from .data import SamsungEhsConfigEntry
-
-from .entity import SamsungEhsEntity
 
 EHS_TO_HASS_STATE = {
     DhwOpMode.ECO: STATE_ECO,
@@ -61,18 +62,20 @@ async def async_setup_entry(
     """Set up the water heater platform."""
     for subentry in entry.subentries.values():
         assert subentry.unique_id is not None  # noqa: S101
-        if subentry.unique_id.startswith("20"):
-            async_add_entities(
-                [
-                    SamsungEhsWaterHeater(
-                        coordinator=entry.runtime_data.coordinator,
-                        entity_description=entity_description,
-                        subentry=subentry,
-                    )
-                    for entity_description in ENTITY_DESCRIPTIONS
-                ],
-                config_subentry_id=subentry.subentry_id,
-            )
+        address = Address.parse(subentry.unique_id)
+        if address.class_id is not AddressClass.INDOOR:
+            continue
+        async_add_entities(
+            [
+                SamsungEhsWaterHeater(
+                    coordinator=entry.runtime_data.coordinator,
+                    entity_description=entity_description,
+                    subentry=subentry,
+                )
+                for entity_description in ENTITY_DESCRIPTIONS
+            ],
+            config_subentry_id=subentry.subentry_id,
+        )
 
 
 class SamsungEhsWaterHeater(SamsungEhsEntity, WaterHeaterEntity):
@@ -108,20 +111,36 @@ class SamsungEhsWaterHeater(SamsungEhsEntity, WaterHeaterEntity):
     @property
     def current_temperature(self) -> float | None:
         """Return the current temperature."""
-        if self._device is not None and self._device.dhw_controller is not None:
+        if self._device is None:
+            return None
+        if (
+            isinstance(self._device, IndoorNasaDevice)
+            and self._device.dhw_controller is not None
+        ):
             return self._device.dhw_controller.current_temperature
         return None
 
     @property
     def target_temperature(self) -> float | None:
         """Return the target temperature."""
-        return self._device.dhw_controller.target_temperature
+        if self._device is None:
+            return None
+        if (
+            isinstance(self._device, IndoorNasaDevice)
+            and self._device.dhw_controller is not None
+        ):
+            return self._device.dhw_controller.target_temperature
+        return None
 
     @property
     def current_operation(self) -> str | None:
         """Return the current operation."""
         # Check if DHW is off first
-        if self._device is None or self._device.dhw_controller is None:
+        if (
+            self._device is None
+            or not isinstance(self._device, IndoorNasaDevice)
+            or self._device.dhw_controller is None
+        ):
             return None
         if (
             self._device.dhw_controller.power is None
@@ -134,19 +153,26 @@ class SamsungEhsWaterHeater(SamsungEhsEntity, WaterHeaterEntity):
     @property
     def available(self) -> bool:
         """Return if the sensor is available."""
-        return self._device is not None and self._device.dhw_controller is not None
+        return not (
+            self._device is None
+            or not isinstance(self._device, IndoorNasaDevice)
+            or self._device.dhw_controller is None
+        )
 
     async def async_set_temperature(self, **kwargs) -> None:
         """Set new target temperature."""
-        if self.available:
-            await self._device.dhw_controller.set_target_temperature(
-                kwargs["temperature"]
-            )
+        if not self.available:
+            return
+        assert isinstance(self._device, IndoorNasaDevice)
+        assert self._device.dhw_controller is not None
+        await self._device.dhw_controller.set_target_temperature(kwargs["temperature"])
 
     async def async_set_operation_mode(self, operation_mode: str) -> None:
         """Set new target operation mode."""
         if not self.available:
             return
+        assert isinstance(self._device, IndoorNasaDevice)
+        assert self._device.dhw_controller is not None
         if operation_mode == STATE_OFF:
             await self._device.dhw_controller.turn_off()
             return
@@ -160,10 +186,14 @@ class SamsungEhsWaterHeater(SamsungEhsEntity, WaterHeaterEntity):
         """Turn the water heater on."""
         if not self.available:
             return
+        assert isinstance(self._device, IndoorNasaDevice)
+        assert self._device.dhw_controller is not None
         await self._device.dhw_controller.turn_on()
 
     async def async_turn_off(self, **kwargs: Any) -> None:
         """Turn the water heater off."""
         if not self.available:
             return
+        assert isinstance(self._device, IndoorNasaDevice)
+        assert self._device.dhw_controller is not None
         await self._device.dhw_controller.turn_off()
