@@ -79,7 +79,7 @@ async def async_setup_entry(
             ),
             config_subentry_id=subentry.subentry_id,
         )
-        address = Address.parse(subentry.data["address"])
+        address = Address.parse(subentry.unique_id)
         if address.class_id == AddressClass.OUTDOOR:
             # Add outdoor sensors
             async_add_entities(
@@ -131,8 +131,10 @@ class SamsungEhsBinarySensor(SamsungEhsEntity, BinarySensorEntity):
         """Return true if the binary_sensor is on."""
         if self.entity_description.is_on_fn is not None:
             return self.entity_description.is_on_fn(self)
-        if self._message_number is not None and self._device is not None:
-            return self._device.attributes.get(self._message_number, {}).get(
-                "value", False
-            )
+        if (
+            self._message_number is not None
+            and self._device is not None
+            and self._message_number in self._device.attributes
+        ):
+            return self._device.attributes.get(self._message_number).VALUE
         return False

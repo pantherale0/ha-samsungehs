@@ -17,27 +17,22 @@ from pysamsungnasa.config import NasaConfig
 
 from .const import DOMAIN, LOGGER
 from .coordinator import SamsungEhsDataUpdateCoordinator
-from .devices import async_setup_devices
+from .devices import async_trigger_discovered_device
 from .data import SamsungEhsConfigEntry, SamsungEhsData
 
 PLATFORMS: list[Platform] = [
     Platform.CLIMATE,
     Platform.SENSOR,
     Platform.BINARY_SENSOR,
-    Platform.WATER_HEATER
+    Platform.WATER_HEATER,
 ]
+
 
 async def async_setup_entry(
     hass: HomeAssistant,
     entry: SamsungEhsConfigEntry,
 ) -> bool:
     """Set up this integration using UI."""
-    def disconnection_handler():
-        """Reload the connection when disconnected."""
-        if entry.runtime_data:
-            hass.async_add_executor_job(entry.runtime_data.client.stop)
-            hass.async_add_executor_job(entry.runtime_data.client.start)
-
     coordinator = SamsungEhsDataUpdateCoordinator(
         hass=hass,
         config_entry=entry,
@@ -45,15 +40,24 @@ async def async_setup_entry(
         name=DOMAIN,
         update_interval=timedelta(seconds=15),
     )
+
+    async def trigger_new_device(device: SamsungNasa) -> None:
+        await async_trigger_discovered_device(
+            hass=hass,
+            entry=entry,
+            device=device,
+        )
+
     entry.runtime_data = SamsungEhsData(
         client=SamsungNasa(
             host=entry.data[CONF_HOST],
             port=entry.data[CONF_PORT],
             config={
-                "client_address": 0x01,
-                "device_addresses": [subentry.data["address"] for subentry in entry.subentries.values()]
+                "device_addresses": [
+                    subentry.unique_id for subentry in entry.subentries.values()
+                ],
             },
-            disconnect_event_handler=disconnection_handler
+            new_device_event_handler=trigger_new_device,
         ),
         coordinator=coordinator,
     )

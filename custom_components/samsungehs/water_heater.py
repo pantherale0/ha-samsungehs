@@ -60,7 +60,8 @@ async def async_setup_entry(
 ) -> None:
     """Set up the water heater platform."""
     for subentry in entry.subentries.values():
-        if subentry.data["address"].startswith("20"):
+        assert subentry.unique_id is not None  # noqa: S101
+        if subentry.unique_id.startswith("20"):
             async_add_entities(
                 [
                     SamsungEhsWaterHeater(

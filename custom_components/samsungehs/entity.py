@@ -31,7 +31,7 @@ class SamsungEhsEntity(CoordinatorEntity[SamsungEhsDataUpdateCoordinator]):
         address = None
         if subentry is not None:
             entry_id = subentry.subentry_id
-            address = subentry.data["address"]
+            address = subentry.unique_id
         if address is None:
             self._attr_unique_id = f"{entry_id}_{key}"
             self._device_address = None
@@ -54,9 +54,6 @@ class SamsungEhsEntity(CoordinatorEntity[SamsungEhsDataUpdateCoordinator]):
             self._device_address
         )
 
-    def _callback(self, *_):
-        self.async_write_ha_state()
-
     async def async_added_to_hass(self) -> None:
         await super().async_added_to_hass()
         if self._message_number is not None and self._device_address is not None:
@@ -69,10 +66,17 @@ class SamsungEhsEntity(CoordinatorEntity[SamsungEhsDataUpdateCoordinator]):
         if self._device is None:
             return
 
-        return self._device.add_device_callback(self._callback)
+        # Check if attributes are present, if not, request the configuration
+        if (
+            0x4000 not in self._device.attributes
+            or 0x4065 not in self._device.attributes
+        ):
+            await self._device.get_configuration()
+
+        return self._device.add_device_callback(self.async_schedule_update_ha_state)
 
     async def async_will_remove_from_hass(self) -> None:
         await super().async_will_remove_from_hass()
         if self._device is None:
             return
-        return self._device.remove_device_callback(self._callback)
+        return self._device.remove_device_callback(self.async_schedule_update_ha_state)

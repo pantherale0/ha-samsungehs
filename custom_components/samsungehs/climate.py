@@ -14,7 +14,11 @@ from homeassistant.components.climate.const import (
     ClimateEntityFeature,
 )
 
-from pysamsungnasa.protocol.enum import InOperationMode, OutdoorOperationStatus, OutdoorIndoorDefrostStep
+from pysamsungnasa.protocol.enum import (
+    InOperationMode,
+    OutdoorOperationStatus,
+    OutdoorIndoorDefrostStep,
+)
 
 from custom_components.samsungehs.coordinator import SamsungEhsDataUpdateCoordinator
 
@@ -26,7 +30,7 @@ EHS_OP_TO_HASS = {
     InOperationMode.COOL: HVACMode.COOL,
     InOperationMode.HEAT: HVACMode.HEAT,
     InOperationMode.FAN: HVACMode.FAN_ONLY,
-    None: HVACMode.OFF
+    None: HVACMode.OFF,
 }
 
 HASS_TO_EHS_OP = dict((v, k) for k, v in EHS_OP_TO_HASS.items())
@@ -43,7 +47,8 @@ async def async_setup_entry(
 ) -> None:
     """Set up the water heater platform."""
     for subentry in entry.subentries.values():
-        if subentry.data["address"].startswith("20"):
+        assert subentry.unique_id is not None  # noqa: S101
+        if subentry.unique_id.startswith("20"):
             async_add_entities(
                 (
                     SamsungEhsClimate(
@@ -91,7 +96,7 @@ class SamsungEhsClimate(SamsungEhsEntity, ClimateEntity):
     def current_temperature(self) -> float | None:
         """Return current temperature."""
         if self.available:
-            return self._device.climate_controller.current_temperature
+            return self._device.climate_controller.f_current_temperature
 
     @property
     def target_temperature(self) -> float | None:
@@ -109,7 +114,10 @@ class SamsungEhsClimate(SamsungEhsEntity, ClimateEntity):
     def hvac_mode(self) -> HVACMode | None:
         """Return the current operation."""
         if self.available:
-            if self._device.climate_controller.power is None or not self._device.climate_controller.power:
+            if (
+                self._device.climate_controller.power is None
+                or not self._device.climate_controller.power
+            ):
                 return HVACMode.OFF
             return EHS_OP_TO_HASS.get(self._device.climate_controller.current_mode)
 
@@ -137,9 +145,15 @@ class SamsungEhsClimate(SamsungEhsEntity, ClimateEntity):
             == OutdoorOperationStatus.OP_NORMAL
         ):
             return HVACAction.HEATING
-        if self._device.climate_controller.outdoor_operation_status == OutdoorOperationStatus.OP_SAFETY:
+        if (
+            self._device.climate_controller.outdoor_operation_status
+            == OutdoorOperationStatus.OP_SAFETY
+        ):
             return HVACAction.PREHEATING
-        if self._device.climate_controller.outdoor_defrost_status != OutdoorIndoorDefrostStep.NO_DEFROST_OPERATION:
+        if (
+            self._device.climate_controller.outdoor_defrost_status
+            != OutdoorIndoorDefrostStep.NO_DEFROST_OPERATION
+        ):
             return HVACAction.DEFROSTING
         if not self._device.climate_controller.power:
             return HVACAction.OFF

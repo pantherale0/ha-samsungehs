@@ -69,7 +69,7 @@ async def async_setup_entry(
             config_subentry_id=subentry.subentry_id,
         )
         entities = []
-        for sensor in subentry.data["sensors"]:
+        for sensor in subentry.data.get("sensors", []):
             parser = MESSAGE_PARSERS.get(int(sensor))
             if parser is None:
                 continue
@@ -125,7 +125,13 @@ class SamsungEhsAvailableAttributesSensor(SamsungEhsEntity, SensorEntity):
         """Return extra state attributes."""
         if self._device is None:
             return {}
-        return self._device.attributes
+        return {
+            msg_number: {
+                "name": value.MESSAGE_NAME,
+                "value": value.VALUE,
+            }
+            for msg_number, value in self._device.attributes.items()
+        }
 
 
 class SamsungEhsSensor(SamsungEhsEntity, SensorEntity):
@@ -155,8 +161,11 @@ class SamsungEhsSensor(SamsungEhsEntity, SensorEntity):
             return None
         if self.entity_description.value_fn is not None:
             return self.entity_description.value_fn(self)
-        if self._message_number is not None:
-            return self._device.attributes.get(self._message_number, {}).get("value")
+        if (
+            self._message_number is not None
+            and self._message_number in self._device.attributes
+        ):
+            return self._device.attributes.get(self._message_number).VALUE
         return None
 
     @property

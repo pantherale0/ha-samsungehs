@@ -5,23 +5,8 @@ from homeassistant import config_entries
 from homeassistant.const import CONF_HOST, CONF_PORT
 from homeassistant.core import callback
 from homeassistant.helpers import selector
-from pysamsungnasa.protocol.factory import MESSAGE_PARSERS
 
 from .const import DOMAIN
-
-
-def msg_parser_list() -> list[selector.SelectOptionDict]:
-    """Return MESSAGE_PARSERS in a organised list for Home Assistant."""
-    data = [
-        selector.SelectOptionDict(
-            value=str(k),
-            label=f"{v.MESSAGE_NAME}",
-        )
-        for k, v in MESSAGE_PARSERS.items()
-    ]
-    data.sort(key=lambda x: x["label"])
-    return data
-
 
 MAIN_STEP_USER = vol.Schema(
     {
@@ -46,13 +31,6 @@ MAIN_STEP_USER = vol.Schema(
 SUB_STEP_USER = vol.Schema(
     {
         vol.Required("address"): selector.TextSelector(),
-        vol.Optional("sensors"): selector.SelectSelector(
-            selector.SelectSelectorConfig(
-                multiple=True,
-                options=msg_parser_list(),
-                mode=selector.SelectSelectorMode.DROPDOWN,
-            )
-        ),
     }
 )
 
@@ -102,7 +80,8 @@ class SamsungEhsDeviceSubentry(config_entries.ConfigSubentryFlow):
         if user_input is not None:
             return self.async_create_entry(
                 title=user_input["address"],
-                data=user_input,
+                data={},
+                unique_id=user_input["address"],
             )
 
         return self.async_show_form(

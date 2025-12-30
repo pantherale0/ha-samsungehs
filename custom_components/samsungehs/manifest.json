@@ -8,5 +8,8 @@
   "documentation": "https://github.com/pantherale0/ha-samsungehs",
   "iot_class": "local_push",
   "issue_tracker": "https://github.com/pantherale0/ha-samsungehs/issues",
-  "version": "0.1.0"
+  "version": "0.1.0",
+  "requirements": [
+    "git+https://github.com/pantherale0/pysamsungehs"
+  ]
 }
