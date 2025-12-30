@@ -2,15 +2,16 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, ClassVar
 
-from homeassistant.components.climate import ClimateEntity, ClimateEntityDescription
+from homeassistant.components.climate import ClimateEntity
 from homeassistant.components.climate.const import (
     ClimateEntityFeature,
     HVACAction,
     HVACMode,
 )
 from homeassistant.const import UnitOfTemperature
+from pysamsungnasa.device.controllers import WaterLawMode
 from pysamsungnasa.helpers import Address
 from pysamsungnasa.protocol.enum import (
     AddressClass,
@@ -39,10 +40,6 @@ EHS_OP_TO_HASS = {
 
 HASS_TO_EHS_OP = {v: k for k, v in EHS_OP_TO_HASS.items()}
 
-ENTITY_DESCRIPTIONS: tuple[ClimateEntityDescription, ...] = (
-    ClimateEntityDescription(key="heating"),
-)
-
 
 async def async_setup_entry(
     hass: HomeAssistant,  # noqa: ARG001
@@ -53,16 +50,14 @@ async def async_setup_entry(
     for subentry in entry.subentries.values():
         assert subentry.unique_id is not None  # noqa: S101
         address = Address.parse(subentry.unique_id)
-        if address.class_id is AddressClass.INDOOR:
+        if address.class_id == AddressClass.INDOOR:
             async_add_entities(
-                (
+                [
                     SamsungEhsClimate(
                         coordinator=entry.runtime_data.coordinator,
-                        entity_description=entity_description,
                         subentry=subentry,
                     )
-                    for entity_description in ENTITY_DESCRIPTIONS
-                ),
+                ],
                 config_subentry_id=subentry.subentry_id,
             )
 
@@ -70,27 +65,27 @@ async def async_setup_entry(
 class SamsungEhsClimate(SamsungEhsEntity, ClimateEntity):
     """Samsung EHS Climate."""
 
-    _attr_hvac_modes = list(EHS_OP_TO_HASS.values())
+    _attr_hvac_modes: ClassVar[list[HVACMode]] = list(EHS_OP_TO_HASS.values())
     _attr_supported_features = (
         ClimateEntityFeature.TURN_OFF
         | ClimateEntityFeature.TURN_ON
         | ClimateEntityFeature.TARGET_TEMPERATURE
     )
     _attr_temperature_unit = UnitOfTemperature.CELSIUS
+    _attr_translation_key = "heating"
+    _attr_target_temperature_step = 0.1
 
     def __init__(
         self,
         coordinator: SamsungEhsDataUpdateCoordinator,
-        entity_description: ClimateEntityDescription,
         subentry,
     ) -> None:
         super().__init__(
             coordinator,
             subentry=subentry,
             message_number=None,
-            key=entity_description.key,
+            key="heating",
         )  # No message number for this mode.
-        self.entity_description = entity_description
 
     @property
     def available(self) -> bool:
@@ -112,7 +107,11 @@ class SamsungEhsClimate(SamsungEhsEntity, ClimateEntity):
     @property
     def current_humidity(self) -> float | None:
         """Return current humidity."""
-        if self.available:
+        if (
+            self.available
+            and self._device.climate_controller.current_humidity is not None
+            and self._device.climate_controller.current_humidity <= 100
+        ):
             return self._device.climate_controller.current_humidity
 
     @property
@@ -163,6 +162,16 @@ class SamsungEhsClimate(SamsungEhsEntity, ClimateEntity):
         if not self._device.climate_controller.power:
             return HVACAction.OFF
         return HVACAction.IDLE
+
+    @property
+    def min_temp(self) -> float | None:
+        """Return the minimum temperature."""
+        return -5.0
+
+    @property
+    def max_temp(self) -> float | None:
+        """Return the maximum temperature."""
+        return 50.0
 
     async def async_set_temperature(self, **kwargs: Any) -> None:
         """Set new target temperature."""

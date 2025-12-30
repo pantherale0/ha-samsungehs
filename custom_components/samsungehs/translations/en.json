@@ -26,8 +26,29 @@
     },
     "entity": {
         "sensor": {
+            "last_packet_received": {
+                "name": "Last Packet Received"
+            },
             "available_attributes": {
                 "name": "Available Attributes"
+            },
+            "outdoor_temperature": {
+                "name": "Outdoor Temperature"
+            },
+            "outdoor_cop": {
+                "name": "Outdoor COP"
+            },
+            "power_generation": {
+                "name": "Power Generation"
+            },
+            "energy_consumption": {
+                "name": "Energy Consumption"
+            },
+            "energy_generation": {
+                "name": "Energy Generation"
+            },
+            "power_usage": {
+                "name": "Power Usage"
             }
         },
         "binary_sensor": {

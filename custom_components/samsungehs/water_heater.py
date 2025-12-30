@@ -63,7 +63,7 @@ async def async_setup_entry(
     for subentry in entry.subentries.values():
         assert subentry.unique_id is not None  # noqa: S101
         address = Address.parse(subentry.unique_id)
-        if address.class_id is not AddressClass.INDOOR:
+        if address.class_id != AddressClass.INDOOR:
             continue
         async_add_entities(
             [
@@ -83,6 +83,7 @@ class SamsungEhsWaterHeater(SamsungEhsEntity, WaterHeaterEntity):
 
     _attr_temperature_unit = UnitOfTemperature.CELSIUS
     _attr_operation_list = SUPPORTED_STATES
+    _attr_translation_key = "dhw"
 
     def __init__(
         self,
@@ -177,7 +178,11 @@ class SamsungEhsWaterHeater(SamsungEhsEntity, WaterHeaterEntity):
             await self._device.dhw_controller.turn_off()
             return
         # Turn dhw power on and send new mode.
-        await self._device.dhw_controller.turn_on()
+        if (
+            self._device.dhw_controller.power is None
+            or not self._device.dhw_controller.power
+        ):
+            await self._device.dhw_controller.turn_on()
         await self._device.dhw_controller.set_operation_mode(
             HASS_TO_EHS_STATE[operation_mode]
         )

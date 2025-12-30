@@ -65,21 +65,11 @@ class SamsungEhsEntity(CoordinatorEntity[SamsungEhsDataUpdateCoordinator]):
         """Call when the entity is added to HASS."""
         await super().async_added_to_hass()
         if self._message_number is not None and self._device_address is not None:
-            self.coordinator.messages_to_read.setdefault(
-                self._device_address, []
-            ).append(self._message_number)
             await self.coordinator.config_entry.runtime_data.client.client.nasa_read(
-                msgs=[self._message_number],
+                msgs=[self._message_number], destination=self._device_address
             )
         if self._device is None:
             return
-
-        # Check if attributes are present, if not, request the configuration
-        if (
-            0x4000 not in self._device.attributes
-            or 0x4065 not in self._device.attributes
-        ):
-            await self._device.get_configuration()
 
         self._device.add_device_callback(self.async_schedule_update_ha_state)
 

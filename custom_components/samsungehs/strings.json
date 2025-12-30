@@ -26,26 +26,29 @@
     },
     "entity": {
         "sensor": {
-            "outdoor_top_sensor_temperature_1": {
-                "name": "Outdoor Top Sensor Temperature 1"
-            },
-            "outdoor_compressor_target_frequency": {
-                "name": "Outdoor Compressor Target Frequency"
-            },
-            "outdoor_fan_rpm": {
-                "name": "Outdoor Fan RPM"
-            },
             "last_packet_received": {
                 "name": "Last Packet Received"
             },
-            "indoor_dhw_current_temperature": {
-                "name": "DHW Current Temperature"
+            "available_attributes": {
+                "name": "Available Attributes"
             },
-            "indoor_dhw_target_temperature": {
-                "name": "DHW Target Temperature"
+            "outdoor_temperature": {
+                "name": "Outdoor Temperature"
             },
-            "indoor_flow_temperature": {
-                "name": "Flow Temperature"
+            "outdoor_cop": {
+                "name": "Outdoor COP"
+            },
+            "power_generation": {
+                "name": "Power Generation"
+            },
+            "energy_consumption": {
+                "name": "Energy Consumption"
+            },
+            "energy_generation": {
+                "name": "Energy Generation"
+            },
+            "power_usage": {
+                "name": "Power Usage"
             }
         },
         "binary_sensor": {
@@ -63,8 +66,7 @@
         },
         "water_heater": {
             "dhw": {
-                "name": "Hot Water",
-                "icon": "mdi:water-boiler"
+                "name": "Hot Water"
             }
         }
     }

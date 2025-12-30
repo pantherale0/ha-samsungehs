@@ -10,9 +10,13 @@ from homeassistant.components.sensor import (
     SensorDeviceClass,
     SensorEntity,
     SensorEntityDescription,
+    SensorStateClass,
 )
 from homeassistant.const import (
     EntityCategory,
+    UnitOfTemperature,
+    UnitOfPower,
+    UnitOfEnergy,
 )
 from pysamsungnasa.helpers import Address
 from pysamsungnasa.protocol.enum import AddressClass
@@ -38,6 +42,10 @@ class SamsungEhsSensorKey(StrEnum):
     AVAILABLE_ATTRIBUTES = "available_attributes"
     OUTDOOR_TEMPERATURE = "outdoor_temperature"
     OUTDOOR_COP = "outdoor_cop"
+    POWER_GENERATION = "power_generation"
+    ENERGY_CONSUMPTION = "energy_consumption"
+    ENERGY_GENERATION = "energy_generation"
+    POWER_USAGE = "power_usage"
 
 
 @dataclass(kw_only=True, frozen=True)
@@ -48,30 +56,59 @@ class SamsungEhsSensorEntityDescription(SensorEntityDescription):
     value_fn: Callable[[OutdoorNasaDevice | IndoorNasaDevice | NasaDevice], Any]
 
 
+ALL_ENTITY_DESCRIPTIONS: tuple[SamsungEhsSensorEntityDescription, ...] = (
+    SamsungEhsSensorEntityDescription(
+        key=SamsungEhsSensorKey.AVAILABLE_ATTRIBUTES,
+        translation_key=SamsungEhsSensorKey.AVAILABLE_ATTRIBUTES,
+        entity_category=EntityCategory.DIAGNOSTIC,
+        value_fn=lambda device: len(device.attributes),
+        state_class=SensorStateClass.MEASUREMENT,
+    ),
+)
+
 OUTDOOR_ENTITY_DESCRIPTIONS: tuple[SamsungEhsSensorEntityDescription, ...] = (
     SamsungEhsSensorEntityDescription(
         key=SamsungEhsSensorKey.OUTDOOR_TEMPERATURE,
         translation_key=SamsungEhsSensorKey.OUTDOOR_TEMPERATURE,
         device_class=SensorDeviceClass.TEMPERATURE,
-        native_unit_of_measurement="°C",
+        native_unit_of_measurement=UnitOfTemperature.CELSIUS,
         value_fn=lambda device: device.outdoor_temperature,
     ),
     SamsungEhsSensorEntityDescription(
         key=SamsungEhsSensorKey.OUTDOOR_COP,
         translation_key=SamsungEhsSensorKey.OUTDOOR_COP,
         value_fn=lambda device: device.cop_rating,
+        state_class=SensorStateClass.MEASUREMENT,
     ),
     SamsungEhsSensorEntityDescription(
-        key=SamsungEhsSensorKey.AVAILABLE_ATTRIBUTES,
-        translation_key=SamsungEhsSensorKey.AVAILABLE_ATTRIBUTES,
-        entity_category=EntityCategory.DIAGNOSTIC,
-        value_fn=lambda device: len(device.attributes),
+        key=SamsungEhsSensorKey.POWER_GENERATION,
+        translation_key=SamsungEhsSensorKey.POWER_GENERATION,
+        value_fn=lambda device: device.power_generated_last_minute,
+        native_unit_of_measurement=UnitOfPower.KILO_WATT,
+        device_class=SensorDeviceClass.POWER,
     ),
     SamsungEhsSensorEntityDescription(
-        key=SamsungEhsSensorKey.LAST_PACKET_RECEIVED,
-        translation_key=SamsungEhsSensorKey.LAST_PACKET_RECEIVED,
-        device_class=SensorDeviceClass.TIMESTAMP,
-        value_fn=lambda device: device.last_packet_time,
+        key=SamsungEhsSensorKey.ENERGY_CONSUMPTION,
+        translation_key=SamsungEhsSensorKey.ENERGY_CONSUMPTION,
+        value_fn=lambda device: device.cumulative_energy,
+        native_unit_of_measurement=UnitOfEnergy.KILO_WATT_HOUR,
+        device_class=SensorDeviceClass.ENERGY,
+        state_class=SensorStateClass.TOTAL_INCREASING,
+    ),
+    SamsungEhsSensorEntityDescription(
+        key=SamsungEhsSensorKey.ENERGY_GENERATION,
+        translation_key=SamsungEhsSensorKey.ENERGY_GENERATION,
+        value_fn=lambda device: device.power_produced,
+        native_unit_of_measurement=UnitOfEnergy.KILO_WATT_HOUR,
+        device_class=SensorDeviceClass.ENERGY,
+        state_class=SensorStateClass.TOTAL_INCREASING,
+    ),
+    SamsungEhsSensorEntityDescription(
+        key=SamsungEhsSensorKey.POWER_USAGE,
+        translation_key=SamsungEhsSensorKey.POWER_USAGE,
+        value_fn=lambda device: device.power_consumption,
+        native_unit_of_measurement=UnitOfPower.KILO_WATT,
+        device_class=SensorDeviceClass.POWER,
     ),
 )
 
@@ -86,7 +123,18 @@ async def async_setup_entry(
     for subentry in entry.subentries.values():
         assert subentry.unique_id is not None  # noqa: S101
         address = Address.parse(subentry.unique_id)
-        if address.class_id is AddressClass.OUTDOOR:
+        async_add_entities(
+            [
+                SamsungEhsSensor(
+                    coordinator=entry.runtime_data.coordinator,
+                    subentry=subentry,
+                    entity_description=entity_description,
+                )
+                for entity_description in ALL_ENTITY_DESCRIPTIONS
+            ],
+            config_subentry_id=subentry.subentry_id,
+        )
+        if address.class_id == AddressClass.OUTDOOR:
             async_add_entities(
                 [
                     SamsungEhsSensor(
