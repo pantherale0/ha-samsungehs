@@ -1,3 +1,4 @@
+# pylint: disable=E1123
 """Sensor platform for samsungehs."""
 
 from __future__ import annotations
@@ -13,10 +14,11 @@ from homeassistant.components.sensor import (
     SensorStateClass,
 )
 from homeassistant.const import (
+    PERCENTAGE,
     EntityCategory,
-    UnitOfTemperature,
-    UnitOfPower,
     UnitOfEnergy,
+    UnitOfPower,
+    UnitOfTemperature,
 )
 from pysamsungnasa.helpers import Address
 from pysamsungnasa.protocol.enum import AddressClass
@@ -38,22 +40,55 @@ if TYPE_CHECKING:
 class SamsungEhsSensorKey(StrEnum):
     """Samsung EHS Sensor Keys."""
 
+    # All devices
     LAST_PACKET_RECEIVED = "last_packet_received"
     AVAILABLE_ATTRIBUTES = "available_attributes"
+
+    # Outdoor unit only
     OUTDOOR_TEMPERATURE = "outdoor_temperature"
     OUTDOOR_COP = "outdoor_cop"
     POWER_GENERATION = "power_generation"
     ENERGY_CONSUMPTION = "energy_consumption"
     ENERGY_GENERATION = "energy_generation"
     POWER_USAGE = "power_usage"
+    WATER_PRESSURE = "water_pressure"
+    COMPRESSOR_FREQUENCY = "compressor_frequency"
+    TARGET_COMPRESSOR_FREQUENCY = "target_compressor_frequency"
+
+    # Indoor unit only
+    WATER_PUMP_SPEED = "water_pump_speed"
+    FLOW_TEMPERATURE = "flow_temperature"
+    FLOW_RATE = "flow_rate"
+    FLOW_SETPOINT_TEMPERATURE = "flow_set_point_temperature"
+    WATER_LAW_TARGET_TEMPERATURE = "water_law_target_temperature"
+    COMPRESSOR_DHW_STANDARD_TEMPERATURE = "compressor_dhw_standard_temperature"
+    DHW_MIN_OPERATING_TIME = "dhw_min_operating_time"
+    DHW_MAX_OPERATING_TIME = "dhw_max_operating_time"
 
 
 @dataclass(kw_only=True, frozen=True)
 class SamsungEhsSensorEntityDescription(SensorEntityDescription):
     """Description for Samsung EHS sensor entities."""
 
+    requires_read: bool = (
+        False  # If true the sensor requires a read command to retrieve
+    )
     message_number: int | None = None
     value_fn: Callable[[OutdoorNasaDevice | IndoorNasaDevice | NasaDevice], Any]
+
+
+@dataclass(kw_only=True, frozen=True)
+class IndoorEhsSensorEntityDescription(SamsungEhsSensorEntityDescription):
+    """Description for Samsung EHS sensor entities."""
+
+    value_fn: Callable[[IndoorNasaDevice], Any] | None = None
+
+
+@dataclass(kw_only=True, frozen=True)
+class OutdoorEhsSensorEntityDescription(SamsungEhsSensorEntityDescription):
+    """Description for Samsung EHS sensor entities."""
+
+    value_fn: Callable[[OutdoorNasaDevice], Any] | None = None
 
 
 ALL_ENTITY_DESCRIPTIONS: tuple[SamsungEhsSensorEntityDescription, ...] = (
@@ -66,8 +101,8 @@ ALL_ENTITY_DESCRIPTIONS: tuple[SamsungEhsSensorEntityDescription, ...] = (
     ),
 )
 
-OUTDOOR_ENTITY_DESCRIPTIONS: tuple[SamsungEhsSensorEntityDescription, ...] = (
-    SamsungEhsSensorEntityDescription(
+OUTDOOR_ENTITY_DESCRIPTIONS: tuple[OutdoorEhsSensorEntityDescription, ...] = (
+    OutdoorEhsSensorEntityDescription(
         key=SamsungEhsSensorKey.OUTDOOR_TEMPERATURE,
         translation_key=SamsungEhsSensorKey.OUTDOOR_TEMPERATURE,
         device_class=SensorDeviceClass.TEMPERATURE,
@@ -75,13 +110,13 @@ OUTDOOR_ENTITY_DESCRIPTIONS: tuple[SamsungEhsSensorEntityDescription, ...] = (
         native_unit_of_measurement=UnitOfTemperature.CELSIUS,
         value_fn=lambda device: device.outdoor_temperature,
     ),
-    SamsungEhsSensorEntityDescription(
+    OutdoorEhsSensorEntityDescription(
         key=SamsungEhsSensorKey.OUTDOOR_COP,
         translation_key=SamsungEhsSensorKey.OUTDOOR_COP,
         value_fn=lambda device: device.cop_rating,
         state_class=SensorStateClass.MEASUREMENT,
     ),
-    SamsungEhsSensorEntityDescription(
+    OutdoorEhsSensorEntityDescription(
         key=SamsungEhsSensorKey.POWER_GENERATION,
         translation_key=SamsungEhsSensorKey.POWER_GENERATION,
         value_fn=lambda device: device.power_generated_last_minute,
@@ -89,7 +124,7 @@ OUTDOOR_ENTITY_DESCRIPTIONS: tuple[SamsungEhsSensorEntityDescription, ...] = (
         device_class=SensorDeviceClass.POWER,
         state_class=SensorStateClass.MEASUREMENT,
     ),
-    SamsungEhsSensorEntityDescription(
+    OutdoorEhsSensorEntityDescription(
         key=SamsungEhsSensorKey.ENERGY_CONSUMPTION,
         translation_key=SamsungEhsSensorKey.ENERGY_CONSUMPTION,
         value_fn=lambda device: device.cumulative_energy,
@@ -97,7 +132,7 @@ OUTDOOR_ENTITY_DESCRIPTIONS: tuple[SamsungEhsSensorEntityDescription, ...] = (
         device_class=SensorDeviceClass.ENERGY,
         state_class=SensorStateClass.TOTAL_INCREASING,
     ),
-    SamsungEhsSensorEntityDescription(
+    OutdoorEhsSensorEntityDescription(
         key=SamsungEhsSensorKey.ENERGY_GENERATION,
         translation_key=SamsungEhsSensorKey.ENERGY_GENERATION,
         value_fn=lambda device: device.power_produced,
@@ -105,7 +140,7 @@ OUTDOOR_ENTITY_DESCRIPTIONS: tuple[SamsungEhsSensorEntityDescription, ...] = (
         device_class=SensorDeviceClass.ENERGY,
         state_class=SensorStateClass.TOTAL_INCREASING,
     ),
-    SamsungEhsSensorEntityDescription(
+    OutdoorEhsSensorEntityDescription(
         key=SamsungEhsSensorKey.POWER_USAGE,
         translation_key=SamsungEhsSensorKey.POWER_USAGE,
         value_fn=lambda device: device.power_consumption,
@@ -113,11 +148,101 @@ OUTDOOR_ENTITY_DESCRIPTIONS: tuple[SamsungEhsSensorEntityDescription, ...] = (
         device_class=SensorDeviceClass.POWER,
         state_class=SensorStateClass.MEASUREMENT,
     ),
+    OutdoorEhsSensorEntityDescription(
+        key=SamsungEhsSensorKey.WATER_PRESSURE,
+        translation_key=SamsungEhsSensorKey.WATER_PRESSURE,
+        native_unit_of_measurement="bar",
+        device_class=SensorDeviceClass.PRESSURE,
+        state_class=SensorStateClass.MEASUREMENT,
+        message_number=0x82FE,
+    ),
+    OutdoorEhsSensorEntityDescription(
+        key=SamsungEhsSensorKey.COMPRESSOR_FREQUENCY,
+        translation_key=SamsungEhsSensorKey.COMPRESSOR_FREQUENCY,
+        native_unit_of_measurement="Hz",
+        device_class=SensorDeviceClass.FREQUENCY,
+        state_class=SensorStateClass.MEASUREMENT,
+        message_number=0x8238,
+    ),
+    OutdoorEhsSensorEntityDescription(
+        key=SamsungEhsSensorKey.TARGET_COMPRESSOR_FREQUENCY,
+        translation_key=SamsungEhsSensorKey.TARGET_COMPRESSOR_FREQUENCY,
+        native_unit_of_measurement="Hz",
+        device_class=SensorDeviceClass.FREQUENCY,
+        state_class=SensorStateClass.MEASUREMENT,
+        message_number=0x8237,
+    ),
+)
+
+INDOOR_ENTITY_DESCRIPTIONS: tuple[IndoorEhsSensorEntityDescription, ...] = (
+    IndoorEhsSensorEntityDescription(
+        key=SamsungEhsSensorKey.WATER_PUMP_SPEED,
+        translation_key=SamsungEhsSensorKey.WATER_PUMP_SPEED,
+        native_unit_of_measurement=PERCENTAGE,
+        state_class=SensorStateClass.MEASUREMENT,
+        message_number=0x40C4,
+        requires_read=True,
+    ),
+    IndoorEhsSensorEntityDescription(
+        key=SamsungEhsSensorKey.FLOW_TEMPERATURE,
+        translation_key=SamsungEhsSensorKey.FLOW_TEMPERATURE,
+        native_unit_of_measurement=UnitOfTemperature.CELSIUS,
+        device_class=SensorDeviceClass.TEMPERATURE,
+        state_class=SensorStateClass.MEASUREMENT,
+        message_number=0x4238,
+    ),
+    IndoorEhsSensorEntityDescription(
+        key=SamsungEhsSensorKey.FLOW_RATE,
+        translation_key=SamsungEhsSensorKey.FLOW_RATE,
+        native_unit_of_measurement="L/min",
+        state_class=SensorStateClass.MEASUREMENT,
+        message_number=0x42E9,
+        requires_read=True,
+    ),
+    IndoorEhsSensorEntityDescription(
+        key=SamsungEhsSensorKey.FLOW_SETPOINT_TEMPERATURE,
+        translation_key=SamsungEhsSensorKey.FLOW_SETPOINT_TEMPERATURE,
+        native_unit_of_measurement=UnitOfTemperature.CELSIUS,
+        device_class=SensorDeviceClass.TEMPERATURE,
+        state_class=SensorStateClass.MEASUREMENT,
+        message_number=0x4247,
+    ),
+    IndoorEhsSensorEntityDescription(
+        key=SamsungEhsSensorKey.WATER_LAW_TARGET_TEMPERATURE,
+        translation_key=SamsungEhsSensorKey.WATER_LAW_TARGET_TEMPERATURE,
+        native_unit_of_measurement=UnitOfTemperature.CELSIUS,
+        device_class=SensorDeviceClass.TEMPERATURE,
+        state_class=SensorStateClass.MEASUREMENT,
+        message_number=0x4248,
+    ),
+    IndoorEhsSensorEntityDescription(
+        key=SamsungEhsSensorKey.COMPRESSOR_DHW_STANDARD_TEMPERATURE,
+        translation_key=SamsungEhsSensorKey.COMPRESSOR_DHW_STANDARD_TEMPERATURE,
+        native_unit_of_measurement=UnitOfTemperature.CELSIUS,
+        device_class=SensorDeviceClass.TEMPERATURE,
+        state_class=SensorStateClass.MEASUREMENT,
+        message_number=0x427C,
+        requires_read=True,
+    ),
+    IndoorEhsSensorEntityDescription(
+        key=SamsungEhsSensorKey.DHW_MIN_OPERATING_TIME,
+        translation_key=SamsungEhsSensorKey.DHW_MIN_OPERATING_TIME,
+        native_unit_of_measurement="minutes",
+        state_class=SensorStateClass.MEASUREMENT,
+        message_number=0x4263,
+    ),
+    IndoorEhsSensorEntityDescription(
+        key=SamsungEhsSensorKey.DHW_MAX_OPERATING_TIME,
+        translation_key=SamsungEhsSensorKey.DHW_MAX_OPERATING_TIME,
+        native_unit_of_measurement="minutes",
+        state_class=SensorStateClass.MEASUREMENT,
+        message_number=0x4264,
+    ),
 )
 
 
 async def async_setup_entry(
-    hass: HomeAssistant,  # noqa: ARG001 Unused function argument: `hass`
+    hass: HomeAssistant,  # pylint: disable=W0613
     entry: SamsungEhsConfigEntry,
     async_add_entities: AddConfigEntryEntitiesCallback,
 ) -> None:
@@ -149,6 +274,18 @@ async def async_setup_entry(
                 ],
                 config_subentry_id=subentry.subentry_id,
             )
+        elif address.class_id == AddressClass.INDOOR:
+            async_add_entities(
+                [
+                    SamsungEhsSensor(
+                        coordinator=entry.runtime_data.coordinator,
+                        subentry=subentry,
+                        entity_description=entity_description,
+                    )
+                    for entity_description in INDOOR_ENTITY_DESCRIPTIONS
+                ],
+                config_subentry_id=subentry.subentry_id,
+            )
 
 
 class SamsungEhsSensor(SamsungEhsEntity, SensorEntity):
@@ -168,6 +305,7 @@ class SamsungEhsSensor(SamsungEhsEntity, SensorEntity):
             subentry=subentry,
             message_number=entity_description.message_number,
             key=entity_description.key,
+            requires_read=entity_description.requires_read,
         )
         self.entity_description = entity_description
 
@@ -175,6 +313,15 @@ class SamsungEhsSensor(SamsungEhsEntity, SensorEntity):
     def native_value(self) -> int | float | None:
         """Return the native value."""
         if self._device is None:
+            return None
+        if self.entity_description.message_number is not None:
+            if self.entity_description.message_number in self._device.attributes:
+                val = self._device.attributes[
+                    self.entity_description.message_number
+                ].VALUE
+                if val == "ffff":  # Sensor not available for this device
+                    return None
+                return val
             return None
         return self.entity_description.value_fn(self._device)
 
@@ -188,6 +335,7 @@ class SamsungEhsSensor(SamsungEhsEntity, SensorEntity):
         return (
             self.coordinator.config_entry.runtime_data.client.client.is_connected
             and self._message_number in self._device.attributes
+            and self._device.attributes[self._message_number].VALUE != "ffff"
         )
 
     @property

@@ -49,6 +49,39 @@
             },
             "power_usage": {
                 "name": "Power Usage"
+            },
+            "water_pressure": {
+                "name": "Water Pressure"
+            },
+            "water_pump_speed": {
+                "name": "Water Pump Speed"
+            },
+            "flow_temperature": {
+                "name": "Flow Temperature"
+            },
+            "flow_rate": {
+                "name": "Flow Rate"
+            },
+            "flow_set_point_temperature": {
+                "name": "Flow Setpoint Temperature"
+            },
+            "water_law_target_temperature": {
+                "name": "Water Law Target Temperature"
+            },
+            "compressor_dhw_standard_temperature": {
+                "name": "Compressor DHW Standard Temperature"
+            },
+            "dhw_min_operating_time": {
+                "name": "DHW Min Operating Time"
+            },
+            "dhw_max_operating_time": {
+                "name": "DHW Max Operating Time"
+            },
+            "compressor_frequency": {
+                "name": "Compressor Frequency"
+            },
+            "target_compressor_frequency": {
+                "name": "Target Compressor Frequency"
             }
         },
         "binary_sensor": {
@@ -57,6 +90,24 @@
             },
             "online": {
                 "name": "Online"
+            },
+            "compressor_running": {
+                "name": "Compressor Running"
+            },
+            "circulation_pump_running": {
+                "name": "Circulation Pump Running"
+            },
+            "hp_running": {
+                "name": "HP Running"
+            },
+            "indoor_dhw_on": {
+                "name": "DHW On"
+            },
+            "indoor_heating_on": {
+                "name": "Heating On"
+            },
+            "indoor_cooling_on": {
+                "name": "Cooling On"
             }
         },
         "climate": {

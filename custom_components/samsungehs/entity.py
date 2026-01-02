@@ -26,6 +26,7 @@ class SamsungEhsEntity(CoordinatorEntity[SamsungEhsDataUpdateCoordinator]):
         message_number: int | None,
         key: str,
         subentry: ConfigSubentry | None,
+        requires_read: bool = False,
     ) -> None:
         """Initialize."""
         super().__init__(coordinator)
@@ -46,6 +47,14 @@ class SamsungEhsEntity(CoordinatorEntity[SamsungEhsDataUpdateCoordinator]):
                 name=self._device_address,
             )
         self._message_number = message_number
+        if (
+            requires_read
+            and self._device_address is not None
+            and self._message_number is not None
+        ):
+            coordinator.config_entry.runtime_data.messages_to_read.setdefault(
+                self._device_address, []
+            ).append(self._message_number)
 
     @property
     def _device(self) -> IndoorNasaDevice | OutdoorNasaDevice | NasaDevice | None:

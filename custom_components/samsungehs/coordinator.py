@@ -32,4 +32,13 @@ class SamsungEhsDataUpdateCoordinator(DataUpdateCoordinator):
                     entry.unique_id
                 ].get_configuration()
             self._first_refresh = False
+
+        for (
+            device_address,
+            messages,
+        ) in self.config_entry.runtime_data.messages_to_read.items():
+            await self.config_entry.runtime_data.client.client.nasa_read(
+                messages, device_address
+            )
+
         return True

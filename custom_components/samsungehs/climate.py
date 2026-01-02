@@ -11,7 +11,6 @@ from homeassistant.components.climate.const import (
     HVACMode,
 )
 from homeassistant.const import UnitOfTemperature
-from pysamsungnasa.device.controllers import WaterLawMode
 from pysamsungnasa.helpers import Address
 from pysamsungnasa.protocol.enum import (
     AddressClass,
