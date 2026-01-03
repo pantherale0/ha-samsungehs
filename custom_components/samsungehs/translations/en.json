@@ -119,6 +119,14 @@
             "dhw": {
                 "name": "Hot Water"
             }
+        },
+        "switch": {
+            "outing_mode": {
+                "name": "Outing Mode"
+            },
+            "quiet_mode": {
+                "name": "Quiet Mode"
+            }
         }
     }
 }

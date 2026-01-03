@@ -25,27 +25,21 @@ class SamsungEhsEntity(CoordinatorEntity[SamsungEhsDataUpdateCoordinator]):
         coordinator: SamsungEhsDataUpdateCoordinator,
         message_number: int | None,
         key: str,
-        subentry: ConfigSubentry | None,
+        subentry: ConfigSubentry,
         requires_read: bool = False,
     ) -> None:
         """Initialize."""
         super().__init__(coordinator)
-        entry_id = coordinator.config_entry.entry_id
-        address = None
-        if subentry is not None:
-            entry_id = subentry.subentry_id
-            address = subentry.unique_id
-        if address is None:
-            self._attr_unique_id = f"{entry_id}_{key}"
-            self._device_address = None
-        else:
-            self._device_address = address
-            self._attr_unique_id = f"{entry_id}_{self._device_address}_{key}"
-            self._attr_device_info = DeviceInfo(
-                identifiers={(DOMAIN, f"{entry_id}_{self._device_address}")},
-                manufacturer="Samsung",
-                name=self._device_address,
-            )
+        entry_id = subentry.subentry_id
+        assert subentry.unique_id is not None  # noqa: S101
+        address = subentry.unique_id
+        self._device_address = address
+        self._attr_unique_id = f"{entry_id}_{self._device_address}_{key}"
+        self._attr_device_info = DeviceInfo(
+            identifiers={(DOMAIN, f"{entry_id}_{self._device_address}")},
+            manufacturer="Samsung",
+            name=self._device_address,
+        )
         self._message_number = message_number
         if (
             requires_read

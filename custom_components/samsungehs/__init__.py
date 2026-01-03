@@ -9,22 +9,22 @@ from __future__ import annotations
 
 from datetime import timedelta
 
-from homeassistant.core import HomeAssistant
 from homeassistant.const import CONF_HOST, CONF_PORT, Platform
-
+from homeassistant.core import HomeAssistant
 from pysamsungnasa import SamsungNasa
-from pysamsungnasa.config import NasaConfig
+from pysamsungnasa.device import NasaDevice
 
 from .const import DOMAIN, LOGGER
 from .coordinator import SamsungEhsDataUpdateCoordinator
-from .devices import async_trigger_discovered_device
 from .data import SamsungEhsConfigEntry, SamsungEhsData
+from .devices import async_trigger_discovered_device
 
 PLATFORMS: list[Platform] = [
     Platform.CLIMATE,
     Platform.SENSOR,
     Platform.BINARY_SENSOR,
     Platform.WATER_HEATER,
+    Platform.SWITCH,
 ]
 
 
@@ -41,7 +41,7 @@ async def async_setup_entry(
         update_interval=timedelta(seconds=15),
     )
 
-    async def trigger_new_device(device: SamsungNasa) -> None:
+    async def trigger_new_device(device: NasaDevice) -> None:
         await async_trigger_discovered_device(
             hass=hass,
             entry=entry,

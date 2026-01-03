@@ -33,12 +33,25 @@ class SamsungEhsDataUpdateCoordinator(DataUpdateCoordinator):
                 ].get_configuration()
             self._first_refresh = False
 
+        # Messages can only be read in batches of 10
         for (
             device_address,
             messages,
         ) in self.config_entry.runtime_data.messages_to_read.items():
-            await self.config_entry.runtime_data.client.client.nasa_read(
-                messages, device_address
-            )
+            for i in range(0, len(messages), 10):
+                batch = messages[i : i + 10]
+                await self.config_entry.runtime_data.client.client.nasa_read(
+                    batch, device_address
+                )
 
         return True
+
+    async def write_message(
+        self, device_address: str, request_type: Any, message: Any
+    ) -> None:
+        """Write a message to the device."""
+        await self.config_entry.runtime_data.client.send_message(
+            device_address,
+            request_type=request_type,
+            messages=[message],
+        )
