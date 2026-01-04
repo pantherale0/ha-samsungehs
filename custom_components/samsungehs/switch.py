@@ -15,8 +15,6 @@ from pysamsungnasa.helpers import Address
 from pysamsungnasa.protocol.enum import (
     AddressClass,
     DataType,
-    InOutingMode,
-    InQuietMode,
     SamsungEnum,
 )
 from pysamsungnasa.protocol.factory import SendMessage
@@ -54,15 +52,15 @@ SWITCHES: tuple[SamsungEHSSwitchEntityDescription, ...] = (
         key=SamsungEHSSwitchKey.OUTING_MODE,
         translation_key=SamsungEHSSwitchKey.OUTING_MODE,
         message_number=0x406D,
-        on_state=InOutingMode.ON,
-        off_state=InOutingMode.OFF,
+        on_state=True,
+        off_state=False,
     ),
     SamsungEHSSwitchEntityDescription(
         key=SamsungEHSSwitchKey.QUIET_MODE,
         translation_key=SamsungEHSSwitchKey.QUIET_MODE,
         message_number=0x406E,
-        on_state=InQuietMode.ON,
-        off_state=InQuietMode.OFF,
+        on_state=True,
+        off_state=False,
         requires_read=True,
     ),
 )
