@@ -82,6 +82,45 @@
             },
             "target_compressor_frequency": {
                 "name": "Target Compressor Frequency"
+            },
+            "eva_out_temperature": {
+                "name": "EVA Out Temperature"
+            },
+            "eva_in_temperature": {
+                "name": "EVA In Temperature"
+            },
+            "condenser_out_temperature": {
+                "name": "Condenser Out Temperature"
+            },
+            "condenser_in_temperature": {
+                "name": "Condenser In Temperature"
+            },
+            "fan_1_speed": {
+                "name": "Fan 1 Speed"
+            },
+            "fan_2_speed": {
+                "name": "Fan 2 Speed"
+            },
+            "eev_position": {
+                "name": "EEV Position"
+            },
+            "tw1_temperature": {
+                "name": "TW1 Temperature"
+            },
+            "tw2_temperature": {
+                "name": "TW2 Temperature"
+            },
+            "suction_temperature": {
+                "name": "Suction Temperature"
+            },
+            "discharge_target_temperature": {
+                "name": "Discharge Target Temperature"
+            },
+            "leaving_water_temperature": {
+                "name": "Leaving Water Temperature"
+            },
+            "return_water_temperature": {
+                "name": "Return Water Temperature"
             }
         },
         "binary_sensor": {
@@ -108,6 +147,15 @@
             },
             "indoor_cooling_on": {
                 "name": "Cooling On"
+            },
+            "indoor_booster_heater_on": {
+                "name": "Booster Heater On"
+            },
+            "indoor_z1_heating_on": {
+                "name": "Zone 1 Heating On"
+            },
+            "indoor_z2_heating_on": {
+                "name": "Zone 2 Heating On"
             }
         },
         "climate": {

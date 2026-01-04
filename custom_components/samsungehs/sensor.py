@@ -54,10 +54,22 @@ class SamsungEhsSensorKey(StrEnum):
     WATER_PRESSURE = "water_pressure"
     COMPRESSOR_FREQUENCY = "compressor_frequency"
     TARGET_COMPRESSOR_FREQUENCY = "target_compressor_frequency"
+    EVA_OUT_TEMPERATURE = "eva_out_temperature"
+    EVA_IN_TEMPERATURE = "eva_in_temperature"
+    CONDENSER_OUT_TEMPERATURE = "condenser_out_temperature"
+    CONDENSER_IN_TEMPERATURE = "condenser_in_temperature"
+    FAN_1_SPEED = "fan_1_speed"
+    FAN_2_SPEED = "fan_2_speed"
+    EEV_POSITION = "eev_position"
+    TW1_TEMPERATURE = "tw1_temperature"
+    TW2_TEMPERATURE = "tw2_temperature"
+    SUCTION_TEMPERATURE = "suction_temperature"
+    DISCHARGE_TARGET_TEMPERATURE = "discharge_target_temperature"
 
     # Indoor unit only
     WATER_PUMP_SPEED = "water_pump_speed"
-    FLOW_TEMPERATURE = "flow_temperature"
+    LEAVING_WATER_TEMPERATURE = "leaving_water_temperature"
+    RETURN_WATER_TEMPERATURE = "return_water_temperature"
     FLOW_RATE = "flow_rate"
     FLOW_SETPOINT_TEMPERATURE = "flow_set_point_temperature"
     WATER_LAW_TARGET_TEMPERATURE = "water_law_target_temperature"
@@ -172,6 +184,90 @@ OUTDOOR_ENTITY_DESCRIPTIONS: tuple[OutdoorEhsSensorEntityDescription, ...] = (
         state_class=SensorStateClass.MEASUREMENT,
         message_number=0x8237,
     ),
+    OutdoorEhsSensorEntityDescription(
+        key=SamsungEhsSensorKey.EVA_OUT_TEMPERATURE,
+        translation_key=SamsungEhsSensorKey.EVA_OUT_TEMPERATURE,
+        native_unit_of_measurement=UnitOfTemperature.CELSIUS,
+        device_class=SensorDeviceClass.TEMPERATURE,
+        state_class=SensorStateClass.MEASUREMENT,
+        message_number=0x82E7,
+    ),
+    OutdoorEhsSensorEntityDescription(
+        key=SamsungEhsSensorKey.EVA_IN_TEMPERATURE,
+        translation_key=SamsungEhsSensorKey.EVA_IN_TEMPERATURE,
+        native_unit_of_measurement=UnitOfTemperature.CELSIUS,
+        device_class=SensorDeviceClass.TEMPERATURE,
+        state_class=SensorStateClass.MEASUREMENT,
+        message_number=0x8218,
+    ),
+    OutdoorEhsSensorEntityDescription(
+        key=SamsungEhsSensorKey.CONDENSER_OUT_TEMPERATURE,
+        translation_key=SamsungEhsSensorKey.CONDENSER_OUT_TEMPERATURE,
+        native_unit_of_measurement=UnitOfTemperature.CELSIUS,
+        device_class=SensorDeviceClass.TEMPERATURE,
+        state_class=SensorStateClass.MEASUREMENT,
+        message_number=0x82DE,
+    ),
+    OutdoorEhsSensorEntityDescription(
+        key=SamsungEhsSensorKey.CONDENSER_IN_TEMPERATURE,
+        translation_key=SamsungEhsSensorKey.CONDENSER_IN_TEMPERATURE,
+        native_unit_of_measurement=UnitOfTemperature.CELSIUS,
+        device_class=SensorDeviceClass.TEMPERATURE,
+        state_class=SensorStateClass.MEASUREMENT,
+        message_number=0x820A,
+    ),
+    OutdoorEhsSensorEntityDescription(
+        key=SamsungEhsSensorKey.FAN_1_SPEED,
+        translation_key=SamsungEhsSensorKey.FAN_1_SPEED,
+        native_unit_of_measurement="RPM",
+        state_class=SensorStateClass.MEASUREMENT,
+        message_number=0x823D,
+    ),
+    OutdoorEhsSensorEntityDescription(
+        key=SamsungEhsSensorKey.FAN_2_SPEED,
+        translation_key=SamsungEhsSensorKey.FAN_2_SPEED,
+        native_unit_of_measurement="RPM",
+        state_class=SensorStateClass.MEASUREMENT,
+        message_number=0x823E,
+    ),
+    OutdoorEhsSensorEntityDescription(
+        key=SamsungEhsSensorKey.EEV_POSITION,
+        translation_key=SamsungEhsSensorKey.EEV_POSITION,
+        state_class=SensorStateClass.MEASUREMENT,
+        message_number=0x8229,
+    ),
+    OutdoorEhsSensorEntityDescription(
+        key=SamsungEhsSensorKey.TW1_TEMPERATURE,
+        translation_key=SamsungEhsSensorKey.TW1_TEMPERATURE,
+        native_unit_of_measurement=UnitOfTemperature.CELSIUS,
+        device_class=SensorDeviceClass.TEMPERATURE,
+        state_class=SensorStateClass.MEASUREMENT,
+        message_number=0x82DF,
+    ),
+    OutdoorEhsSensorEntityDescription(
+        key=SamsungEhsSensorKey.TW2_TEMPERATURE,
+        translation_key=SamsungEhsSensorKey.TW2_TEMPERATURE,
+        native_unit_of_measurement=UnitOfTemperature.CELSIUS,
+        device_class=SensorDeviceClass.TEMPERATURE,
+        state_class=SensorStateClass.MEASUREMENT,
+        message_number=0x82E0,
+    ),
+    OutdoorEhsSensorEntityDescription(
+        key=SamsungEhsSensorKey.SUCTION_TEMPERATURE,
+        translation_key=SamsungEhsSensorKey.SUCTION_TEMPERATURE,
+        native_unit_of_measurement=UnitOfTemperature.CELSIUS,
+        device_class=SensorDeviceClass.TEMPERATURE,
+        state_class=SensorStateClass.MEASUREMENT,
+        message_number=0x821A,
+    ),
+    OutdoorEhsSensorEntityDescription(
+        key=SamsungEhsSensorKey.DISCHARGE_TARGET_TEMPERATURE,
+        translation_key=SamsungEhsSensorKey.DISCHARGE_TARGET_TEMPERATURE,
+        native_unit_of_measurement=UnitOfTemperature.CELSIUS,
+        device_class=SensorDeviceClass.TEMPERATURE,
+        state_class=SensorStateClass.MEASUREMENT,
+        message_number=0x8223,
+    ),
 )
 
 INDOOR_ENTITY_DESCRIPTIONS: tuple[IndoorEhsSensorEntityDescription, ...] = (
@@ -184,8 +280,16 @@ INDOOR_ENTITY_DESCRIPTIONS: tuple[IndoorEhsSensorEntityDescription, ...] = (
         requires_read=True,
     ),
     IndoorEhsSensorEntityDescription(
-        key=SamsungEhsSensorKey.FLOW_TEMPERATURE,
-        translation_key=SamsungEhsSensorKey.FLOW_TEMPERATURE,
+        key=SamsungEhsSensorKey.RETURN_WATER_TEMPERATURE,
+        translation_key=SamsungEhsSensorKey.RETURN_WATER_TEMPERATURE,
+        native_unit_of_measurement=UnitOfTemperature.CELSIUS,
+        device_class=SensorDeviceClass.TEMPERATURE,
+        state_class=SensorStateClass.MEASUREMENT,
+        message_number=0x4236,
+    ),
+    IndoorEhsSensorEntityDescription(
+        key=SamsungEhsSensorKey.LEAVING_WATER_TEMPERATURE,
+        translation_key=SamsungEhsSensorKey.LEAVING_WATER_TEMPERATURE,
         native_unit_of_measurement=UnitOfTemperature.CELSIUS,
         device_class=SensorDeviceClass.TEMPERATURE,
         state_class=SensorStateClass.MEASUREMENT,
@@ -197,7 +301,6 @@ INDOOR_ENTITY_DESCRIPTIONS: tuple[IndoorEhsSensorEntityDescription, ...] = (
         native_unit_of_measurement="L/min",
         state_class=SensorStateClass.MEASUREMENT,
         message_number=0x42E9,
-        requires_read=True,
     ),
     IndoorEhsSensorEntityDescription(
         key=SamsungEhsSensorKey.FLOW_SETPOINT_TEMPERATURE,
