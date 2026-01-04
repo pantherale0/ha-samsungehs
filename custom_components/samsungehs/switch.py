@@ -24,7 +24,7 @@ from .entity import SamsungEhsEntity
 if TYPE_CHECKING:
     from homeassistant.config_entries import ConfigSubentry
     from homeassistant.core import HomeAssistant
-    from homeassistant.helpers.entity_platform import AddEntitiesCallback
+    from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
 
     from .coordinator import SamsungEhsDataUpdateCoordinator
     from .data import SamsungEhsConfigEntry
@@ -69,7 +69,7 @@ SWITCHES: tuple[SamsungEHSSwitchEntityDescription, ...] = (
 async def async_setup_entry(
     hass: HomeAssistant,
     entry: SamsungEhsConfigEntry,
-    async_add_entities: AddEntitiesCallback,
+    async_add_entities: AddConfigEntryEntitiesCallback,
 ) -> None:
     """Set up Samsung EHS switch based on a config entry."""
     for subentry in entry.subentries.values():
@@ -78,8 +78,11 @@ async def async_setup_entry(
         if Address.parse(subentry.unique_id).class_id != AddressClass.INDOOR:
             continue
         async_add_entities(
-            SamsungEHSSwitch(entry.runtime_data.coordinator, description, subentry)
-            for description in SWITCHES
+            [
+                SamsungEHSSwitch(entry.runtime_data.coordinator, description, subentry)
+                for description in SWITCHES
+            ],
+            config_subentry_id=subentry.subentry_id,
         )
 
 
