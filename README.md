@@ -2,11 +2,25 @@
 
 > **⚠️ Technical Proof of Concept**
 >
-> This is a technical proof of concept (POC) integration. It is provided as-is for development and testing purposes. Use at your own risk and expect potential breaking changes. This integration is not officially supported and may require modifications to work with your specific Samsung EHS system.
+> This is a technical proof of concept (POC) integration provided as-is for development and testing purposes. Use at your own risk and expect potential breaking changes as the project evolves.
+>
+> **Technology Readiness Level**: TRL 7 (System prototype demonstration in operational environment)
 
 ## Overview
 
 The Samsung EHS integration brings control and monitoring of Samsung Environmental Heat System (EHS) devices to Home Assistant. This integration communicates with Samsung heat pump and heat recovery ventilation systems over the local network using the NASА protocol.
+
+## Why does this exist?
+
+I wanted a local-only solution without relying on Samsung's commercial modbus adapter or their cloud-based WiFi kit (which requires internet connectivity for monitoring and control).
+
+While there are excellent existing projects in this space that have paved the way, I created this integration to address my specific requirements and use case:
+
+- **Samsung HVAC AC component for ESPHome** - This project has done fantastic work and much of the protocol understanding comes from their efforts. For my setup, I needed more flexibility in discovering and monitoring custom registers, and wanted to avoid dedicating the UART connection exclusively to one component. Over extended periods, I also observed some challenges with packet processing in my environment.
+
+- **Samsung EHS -> MQTT** - Another solid project that works well for many users. I wanted a solution that integrated more tightly with Home Assistant's native entities and didn't require running a separate add-on or dedicated device. I also needed support for asynchronous communication patterns to address the message processing problems.
+
+This integration takes a different architectural approach that suited my needs. All of these solutions have contributed valuable knowledge to the community.
 
 ## Features
 
