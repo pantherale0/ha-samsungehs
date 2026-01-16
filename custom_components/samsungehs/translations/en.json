@@ -169,6 +169,9 @@
             }
         },
         "switch": {
+            "frequency_ratio_control": {
+                "name": "Frequency Ratio Control (FSV5051)"
+            },
             "outing_mode": {
                 "name": "Outing Mode"
             },

@@ -113,7 +113,23 @@ OUTDOOR_ENTITY_DESCRIPTIONS: tuple[SamsungEhsSensorEntityDescription, ...] = (
     SamsungEhsSensorEntityDescription(
         key=SamsungEhsSensorKey.OUTDOOR_COP,
         translation_key=SamsungEhsSensorKey.OUTDOOR_COP,
-        value_fn=lambda device: 0,  # TODO
+        value_fn=lambda device: (
+            indoor.TotalEnergyGenerated.MESSAGE_ID in device.attributes
+            and outdoor.OutdoorCumulativeEnergy.MESSAGE_ID in device.attributes
+            and (
+                consumption := device.attributes[
+                    outdoor.OutdoorCumulativeEnergy.MESSAGE_ID
+                ].VALUE
+            )
+            != 0
+            and (
+                generation := device.attributes[
+                    indoor.TotalEnergyGenerated.MESSAGE_ID
+                ].VALUE
+            ) is not None
+            and generation / consumption
+        )
+        or None,
         state_class=SensorStateClass.MEASUREMENT,
     ),
     SamsungEhsSensorEntityDescription(
