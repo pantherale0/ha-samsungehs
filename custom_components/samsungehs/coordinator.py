@@ -2,10 +2,14 @@
 
 from __future__ import annotations
 
-from math import e
 from typing import TYPE_CHECKING, Any
 
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator
+from pysamsungnasa.protocol.factory.messages.basic import (
+    ProductModelName,
+    SerialNumber,
+    DbCodeMiComMainMessage,
+)
 
 if TYPE_CHECKING:
     from .data import SamsungEhsConfigEntry
@@ -28,6 +32,16 @@ class SamsungEhsDataUpdateCoordinator(DataUpdateCoordinator):
                     continue
                 if entry.unique_id not in self.config_entry.runtime_data.client.devices:
                     continue
+                # Collect model information if not already present
+                device = self.config_entry.runtime_data.client.devices[entry.unique_id]
+                if ProductModelName.MESSAGE_ID not in device.attributes:
+                    await device.get_attribute(ProductModelName, requires_read=True)
+                if SerialNumber.MESSAGE_ID not in device.attributes:
+                    await device.get_attribute(SerialNumber, requires_read=True)
+                if DbCodeMiComMainMessage.MESSAGE_ID not in device.attributes:
+                    await device.get_attribute(
+                        DbCodeMiComMainMessage, requires_read=True
+                    )
             self._first_refresh = False
 
         # Messages can only be read in batches of 10

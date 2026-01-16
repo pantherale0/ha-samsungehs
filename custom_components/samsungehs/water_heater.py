@@ -15,7 +15,7 @@ from homeassistant.components.water_heater import (
 )
 from homeassistant.const import STATE_OFF, UnitOfTemperature
 from pysamsungnasa.helpers import Address
-from pysamsungnasa.protocol.enum import AddressClass, DhwOpMode
+from pysamsungnasa.protocol.enum import AddressClass, DataType, DhwOpMode
 from pysamsungnasa.protocol.factory.messages.indoor import (
     DhwCurrentTemperature,
     DhwTargetTemperature,
@@ -140,7 +140,9 @@ class SamsungEhsWaterHeater(SamsungEhsEntity, WaterHeaterEntity):
 
     async def async_set_temperature(self, **kwargs: Any) -> None:
         """Set new target temperature."""
-        await self._device.write_attribute(DhwTargetTemperature, kwargs["temperature"])
+        await self._device.write_attribute(
+            DhwTargetTemperature, kwargs["temperature"], mode=DataType.REQUEST
+        )
 
     async def async_set_operation_mode(self, operation_mode: str) -> None:
         """Set new target operation mode."""
@@ -152,7 +154,8 @@ class SamsungEhsWaterHeater(SamsungEhsEntity, WaterHeaterEntity):
             {
                 InDhwWaterHeaterPower: True,
                 InDhwOpMode: HASS_TO_EHS_STATE[operation_mode],
-            }
+            },
+            mode=DataType.REQUEST,
         )
 
     async def async_turn_on(self, **kwargs: Any) -> None:

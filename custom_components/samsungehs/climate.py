@@ -20,6 +20,7 @@ from pysamsungnasa.protocol.enum import (
     OutdoorOperationStatus,
 )
 from pysamsungnasa.protocol.factory.messages.indoor import (
+    InWaterLawTargetTemperature,
     IndoorFlowTemperature,
     InOperationModeMessage,
     InOperationPowerMessage,
@@ -111,10 +112,14 @@ class SamsungEhsClimate(SamsungEhsEntity, ClimateEntity):
         if not self.available:
             return None
         control_mode = get_temperature_control_mode(self._device)
-        if control_mode == "target_indoor_temperature":
+        if control_mode == "target_room_temperature":
             value = self.get_attribute(InRoomTemperature)
-        else:
+        elif control_mode == "target_water_temperature":
             value = self.get_attribute(IndoorFlowTemperature)
+        elif control_mode == "water_law_offset":
+            value = self.get_attribute(InWaterLawTargetTemperature)
+        else:
+            return None
         return (
             float(value) if value is not None and not isinstance(value, str) else None
         )
@@ -125,10 +130,14 @@ class SamsungEhsClimate(SamsungEhsEntity, ClimateEntity):
         if not self.available:
             return None
         control_mode = get_temperature_control_mode(self._device)
-        if control_mode == "target_indoor_temperature":
+        if control_mode == "target_room_temperature":
             value = self.get_attribute(InTargetTemperature)
-        else:
+        elif control_mode == "target_water_temperature":
             value = self.get_attribute(InWaterOutletTargetTemperature)
+        elif control_mode == "water_law_offset":
+            value = self.get_attribute(InWaterLawTargetTemperature)
+        else:
+            return None
         return (
             float(value) if value is not None and not isinstance(value, str) else None
         )

@@ -6,6 +6,11 @@ from typing import TYPE_CHECKING
 
 from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
+from pysamsungnasa.protocol.factory.messages.basic import (
+    DbCodeMiComMainMessage,
+    ProductModelName,
+    SerialNumber,
+)
 from pysamsungnasa.protocol.factory.types import BaseMessage
 
 from .const import DOMAIN
@@ -31,16 +36,11 @@ class SamsungEhsEntity(CoordinatorEntity[SamsungEhsDataUpdateCoordinator]):
     ) -> None:
         """Initialize."""
         super().__init__(coordinator)
-        entry_id = subentry.subentry_id
+        self.entry_id = subentry.subentry_id
         assert subentry.unique_id is not None  # noqa: S101
         address = subentry.unique_id
         self._device_address = address
-        self._attr_unique_id = f"{entry_id}_{self._device_address}_{key}"
-        self._attr_device_info = DeviceInfo(
-            identifiers={(DOMAIN, f"{entry_id}_{self._device_address}")},
-            manufacturer="Samsung",
-            name=self._device_address,
-        )
+        self._attr_unique_id = f"{self.entry_id}_{self._device_address}_{key}"
         self._message = message
         if (
             requires_read
@@ -53,6 +53,39 @@ class SamsungEhsEntity(CoordinatorEntity[SamsungEhsDataUpdateCoordinator]):
             ).append(self._message.MESSAGE_ID)
 
     @property
+    def device_info(self) -> DeviceInfo:
+        """Return the device info."""
+        model = self.get_attribute(ProductModelName)
+        if model is not None and isinstance(model, dict):
+            model_name = model.get("model_name", "Samsung EHS")
+            model_type = model.get("model_type")
+        else:
+            model_name = "Samsung EHS"
+            model_type = None
+        serial_number = self.get_attribute(SerialNumber)
+        if serial_number is None or serial_number == "ffffffffffffffffffffffffffffffff":
+            serial_number = None
+        else:
+            serial_number = str(serial_number)
+        dbcode = self.get_attribute(DbCodeMiComMainMessage)
+        if dbcode is not None:
+            dbcode = str(dbcode)
+        return DeviceInfo(
+            identifiers={
+                (
+                    DOMAIN,
+                    f"{self.entry_id}_{self._device_address}",
+                )
+            },
+            manufacturer="Samsung",
+            name=self._device_address,
+            model=model_name,
+            model_id=model_type,
+            sw_version=dbcode,
+            serial_number=serial_number,
+        )
+
+    @property
     def _device(self) -> NasaDevice:
         """Return the device associated with this entity."""
         return self.coordinator.config_entry.runtime_data.client.devices[
@@ -61,7 +94,7 @@ class SamsungEhsEntity(CoordinatorEntity[SamsungEhsDataUpdateCoordinator]):
 
     def get_attribute(
         self, message: type[BaseMessage] | None = None
-    ) -> str | int | float | None:
+    ) -> str | int | float | dict | None:
         """Get the attribute value for this entity."""
         if not isinstance(message, type) or (
             not issubclass(message, BaseMessage) and message is not None

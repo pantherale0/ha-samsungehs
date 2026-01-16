@@ -1,14 +1,14 @@
 """Samsung EHS helper functions."""
 
 from pysamsungnasa.device import NasaDevice
-from pysamsungnasa.protocol.enum import InOperationMode
+from pysamsungnasa.protocol.enum import DataType, InOperationMode
 from pysamsungnasa.protocol.factory.messages.indoor import (
     InFsv2091UseThermostat1,
     InFsv2092UseThermostat2,
     InOperationModeMessage,
-    InWaterOutletTargetTemperature,
-    InWaterLawTargetTemperature,
     InTargetTemperature,
+    InWaterLawTargetTemperature,
+    InWaterOutletTargetTemperature,
 )
 
 
@@ -26,12 +26,15 @@ def get_temperature_control_mode(device: NasaDevice) -> str | None:
     ]
     if not all(msg in device.attributes for msg in required_messages):
         return None
-    if device.attributes[InOperationModeMessage.MESSAGE_ID] in [
+    if device.attributes[InOperationModeMessage.MESSAGE_ID].VALUE in [
         InOperationMode.HEAT,
         InOperationMode.COOL,
     ]:
         return "target_water_temperature"
-    if device.attributes[InOperationModeMessage.MESSAGE_ID] == InOperationMode.AUTO:
+    if (
+        device.attributes[InOperationModeMessage.MESSAGE_ID].VALUE
+        == InOperationMode.AUTO
+    ):
         return "water_law_offset"
     return "target_room_temperature"
 
@@ -41,10 +44,16 @@ async def async_set_space_heating_target_temperature(
 ) -> None:
     """Set target temperature for space heating mode based on the current control mode."""
     if get_temperature_control_mode(device) == "target_water_temperature":
-        await device.write_attribute(InWaterOutletTargetTemperature, temperature)
+        await device.write_attribute(
+            InWaterOutletTargetTemperature, temperature, mode=DataType.REQUEST
+        )
     elif get_temperature_control_mode(device) == "water_law_offset":
-        await device.write_attribute(InWaterLawTargetTemperature, temperature)
+        await device.write_attribute(
+            InWaterLawTargetTemperature, temperature, mode=DataType.REQUEST
+        )
     elif get_temperature_control_mode(device) == "target_room_temperature":
-        await device.write_attribute(InTargetTemperature, temperature)
+        await device.write_attribute(
+            InTargetTemperature, temperature, mode=DataType.REQUEST
+        )
     else:
         return
