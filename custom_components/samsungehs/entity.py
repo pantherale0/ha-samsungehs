@@ -6,13 +6,14 @@ from typing import TYPE_CHECKING
 
 from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
+from pysamsungnasa.protocol.factory.types import BaseMessage
 
 from .const import DOMAIN
 from .coordinator import SamsungEhsDataUpdateCoordinator
 
 if TYPE_CHECKING:
     from homeassistant.config_entries import ConfigSubentry
-    from pysamsungnasa.device import IndoorNasaDevice, NasaDevice, OutdoorNasaDevice
+    from pysamsungnasa.device import NasaDevice
 
 
 class SamsungEhsEntity(CoordinatorEntity[SamsungEhsDataUpdateCoordinator]):
@@ -23,7 +24,7 @@ class SamsungEhsEntity(CoordinatorEntity[SamsungEhsDataUpdateCoordinator]):
     def __init__(
         self,
         coordinator: SamsungEhsDataUpdateCoordinator,
-        message_number: int | None,
+        message: type[BaseMessage] | None,
         key: str,
         subentry: ConfigSubentry,
         requires_read: bool = False,
@@ -40,36 +41,53 @@ class SamsungEhsEntity(CoordinatorEntity[SamsungEhsDataUpdateCoordinator]):
             manufacturer="Samsung",
             name=self._device_address,
         )
-        self._message_number = message_number
+        self._message = message
         if (
             requires_read
             and self._device_address is not None
-            and self._message_number is not None
+            and self._message is not None
+            and self._message.MESSAGE_ID is not None
         ):
             coordinator.config_entry.runtime_data.messages_to_read.setdefault(
                 self._device_address, []
-            ).append(self._message_number)
+            ).append(self._message.MESSAGE_ID)
 
     @property
-    def _device(self) -> IndoorNasaDevice | OutdoorNasaDevice | NasaDevice | None:
+    def _device(self) -> NasaDevice:
         """Return the device associated with this entity."""
-        if self._device_address is None:
-            return None
-        if (
-            self._device_address
-            not in self.coordinator.config_entry.runtime_data.client.devices
-        ):
-            return None
         return self.coordinator.config_entry.runtime_data.client.devices[
             self._device_address
         ]
 
+    def get_attribute(
+        self, message: type[BaseMessage] | None = None
+    ) -> str | int | float | None:
+        """Get the attribute value for this entity."""
+        if not isinstance(message, type) or (
+            not issubclass(message, BaseMessage) and message is not None
+        ):
+            return None
+        message_number = (
+            self._message.MESSAGE_ID if message is None else message.MESSAGE_ID
+        )
+        assert message_number is not None  # noqa: S101
+        if self._device is None or message_number is None:
+            return None
+        attribute = self._device.attributes.get(message_number)
+        if attribute is None:
+            return None
+        return attribute.VALUE
+
     async def async_added_to_hass(self) -> None:
         """Call when the entity is added to HASS."""
         await super().async_added_to_hass()
-        if self._message_number is not None and self._device_address is not None:
+        if (
+            self._message is not None
+            and self._device_address is not None
+            and self._message.MESSAGE_ID is not None
+        ):
             await self.coordinator.config_entry.runtime_data.client.client.nasa_read(
-                msgs=[self._message_number], destination=self._device_address
+                msgs=[self._message.MESSAGE_ID], destination=self._device_address
             )
         if self._device is None:
             return

@@ -14,10 +14,12 @@ from homeassistant.components.switch import (
 from pysamsungnasa.helpers import Address
 from pysamsungnasa.protocol.enum import (
     AddressClass,
-    DataType,
-    SamsungEnum,
 )
-from pysamsungnasa.protocol.factory import SendMessage
+from pysamsungnasa.protocol.factory.messages.indoor import (
+    InFsv5051,
+    InOutingModeMessage,
+    InQuietModeMessage,
+)
 
 from .entity import SamsungEhsEntity
 
@@ -25,6 +27,7 @@ if TYPE_CHECKING:
     from homeassistant.config_entries import ConfigSubentry
     from homeassistant.core import HomeAssistant
     from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
+    from pysamsungnasa.protocol.factory.types import BaseMessage
 
     from .coordinator import SamsungEhsDataUpdateCoordinator
     from .data import SamsungEhsConfigEntry
@@ -35,15 +38,14 @@ class SamsungEHSSwitchKey(StrEnum):
 
     OUTING_MODE = "outing_mode"
     QUIET_MODE = "quiet_mode"
+    FREQUENCY_RATIO_CONTROL = "frequency_ratio_control"
 
 
 @dataclass(frozen=True, kw_only=True)
 class SamsungEHSSwitchEntityDescription(SwitchEntityDescription):
     """Describes Samsung EHS switch entity."""
 
-    on_state: SamsungEnum | bool
-    off_state: SamsungEnum | bool
-    message_number: int
+    message: type[BaseMessage]
     requires_read: bool = False
 
 
@@ -51,16 +53,18 @@ SWITCHES: tuple[SamsungEHSSwitchEntityDescription, ...] = (
     SamsungEHSSwitchEntityDescription(
         key=SamsungEHSSwitchKey.OUTING_MODE,
         translation_key=SamsungEHSSwitchKey.OUTING_MODE,
-        message_number=0x406D,
-        on_state=True,
-        off_state=False,
+        message=InOutingModeMessage,
     ),
     SamsungEHSSwitchEntityDescription(
         key=SamsungEHSSwitchKey.QUIET_MODE,
         translation_key=SamsungEHSSwitchKey.QUIET_MODE,
-        message_number=0x406E,
-        on_state=True,
-        off_state=False,
+        message=InQuietModeMessage,
+        requires_read=True,
+    ),
+    SamsungEHSSwitchEntityDescription(
+        key=SamsungEHSSwitchKey.FREQUENCY_RATIO_CONTROL,
+        translation_key=SamsungEHSSwitchKey.FREQUENCY_RATIO_CONTROL,
+        message=InFsv5051,
         requires_read=True,
     ),
 )
@@ -100,7 +104,7 @@ class SamsungEHSSwitch(SamsungEhsEntity, SwitchEntity):
         """Initialize the switch."""
         super().__init__(
             coordinator,
-            message_number=description.message_number,
+            message=description.message,
             key=description.key,
             requires_read=description.requires_read,
             subentry=subentry,
@@ -112,45 +116,21 @@ class SamsungEHSSwitch(SamsungEhsEntity, SwitchEntity):
         """Return true if the switch is on."""
         if self._device is None:
             return None
-        if self.entity_description.message_number not in self._device.attributes:
+        if (
+            self._message is None
+            or self._message.MESSAGE_ID not in self._device.attributes
+        ):
             return None
-        return (
-            self._device.attributes[self.entity_description.message_number]
-            == self.entity_description.on_state
-        )
+        return self._device.attributes[self._message.MESSAGE_ID].VALUE
 
     async def async_turn_on(self, **kwargs: Any) -> None:
         """Turn the switch on."""
-        new_value = self.entity_description.on_state
-        if isinstance(new_value, bool):
-            new_value = new_value.to_bytes(1, "big")
-        elif isinstance(new_value, SamsungEnum):
-            new_value = int(new_value.value).to_bytes(1, "big")
-        else:
+        if self._message is None:
             return
-        await self.coordinator.write_message(
-            self._device_address,
-            request_type=DataType.WRITE,
-            message=SendMessage(
-                MESSAGE_ID=self.entity_description.message_number,
-                PAYLOAD=new_value,
-            ),
-        )
+        await self._device.write_attribute(self._message, value=True)
 
     async def async_turn_off(self, **kwargs: Any) -> None:
         """Turn the switch off."""
-        new_value = self.entity_description.off_state
-        if isinstance(new_value, bool):
-            new_value = new_value.to_bytes(1, "big")
-        elif isinstance(new_value, SamsungEnum):
-            new_value = int(new_value.value).to_bytes(1, "big")
-        else:
+        if self._message is None:
             return
-        await self.coordinator.write_message(
-            self._device_address,
-            request_type=DataType.WRITE,
-            message=SendMessage(
-                MESSAGE_ID=self.entity_description.message_number,
-                PAYLOAD=new_value,
-            ),
-        )
+        await self._device.write_attribute(self._message, value=False)

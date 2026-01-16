@@ -14,13 +14,19 @@ from homeassistant.components.water_heater import (
     WaterHeaterEntityFeature,
 )
 from homeassistant.const import STATE_OFF, UnitOfTemperature
-from pysamsungnasa.device import IndoorNasaDevice
 from pysamsungnasa.helpers import Address
 from pysamsungnasa.protocol.enum import AddressClass, DhwOpMode
+from pysamsungnasa.protocol.factory.messages.indoor import (
+    DhwCurrentTemperature,
+    DhwTargetTemperature,
+    InDhwOpMode,
+    InDhwWaterHeaterPower,
+)
 
 from .entity import SamsungEhsEntity
 
 if TYPE_CHECKING:
+    from homeassistant.config_entries import ConfigSubentry
     from homeassistant.core import HomeAssistant
     from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
 
@@ -89,12 +95,12 @@ class SamsungEhsWaterHeater(SamsungEhsEntity, WaterHeaterEntity):
         self,
         coordinator: SamsungEhsDataUpdateCoordinator,
         entity_description: WaterHeaterEntityDescription,
-        subentry,
+        subentry: ConfigSubentry,
     ) -> None:
         """Initialize the sensor class."""
         super().__init__(
             coordinator,
-            message_number=None,
+            message=None,
             key=entity_description.key,
             subentry=subentry,
         )
@@ -112,93 +118,59 @@ class SamsungEhsWaterHeater(SamsungEhsEntity, WaterHeaterEntity):
     @property
     def current_temperature(self) -> float | None:
         """Return the current temperature."""
-        if self._device is None:
-            return None
-        if (
-            isinstance(self._device, IndoorNasaDevice)
-            and self._device.dhw_controller is not None
-        ):
-            return self._device.dhw_controller.current_temperature
-        return None
+        value = self.get_attribute(DhwCurrentTemperature)
+        return float(value) if value is not None else None
 
     @property
     def target_temperature(self) -> float | None:
         """Return the target temperature."""
-        if self._device is None:
-            return None
-        if (
-            isinstance(self._device, IndoorNasaDevice)
-            and self._device.dhw_controller is not None
-        ):
-            return self._device.dhw_controller.target_temperature
-        return None
+        value = self.get_attribute(DhwTargetTemperature)
+        return float(value) if value is not None else None
 
     @property
     def current_operation(self) -> str | None:
         """Return the current operation."""
         # Check if DHW is off first
-        if (
-            self._device is None
-            or not isinstance(self._device, IndoorNasaDevice)
-            or self._device.dhw_controller is None
-        ):
-            return None
-        if (
-            self._device.dhw_controller.power is None
-            or not self._device.dhw_controller.power
-            or self._device.dhw_controller.operation_mode is None
-        ):
+        if not self.get_attribute(InDhwWaterHeaterPower):
             return STATE_OFF
-        return EHS_TO_HASS_STATE.get(self._device.dhw_controller.operation_mode)
+        op_mode = self.get_attribute(InDhwOpMode)
+        if op_mode is None or not isinstance(op_mode, DhwOpMode):
+            return None
+        return EHS_TO_HASS_STATE.get(op_mode)
 
-    @property
-    def available(self) -> bool:
-        """Return if the sensor is available."""
-        return not (
-            self._device is None
-            or not isinstance(self._device, IndoorNasaDevice)
-            or self._device.dhw_controller is None
-        )
-
-    async def async_set_temperature(self, **kwargs) -> None:
+    async def async_set_temperature(self, **kwargs: Any) -> None:
         """Set new target temperature."""
-        if not self.available:
-            return
-        assert isinstance(self._device, IndoorNasaDevice)
-        assert self._device.dhw_controller is not None
-        await self._device.dhw_controller.set_target_temperature(kwargs["temperature"])
+        await self._device.write_attribute(DhwTargetTemperature, kwargs["temperature"])
 
     async def async_set_operation_mode(self, operation_mode: str) -> None:
         """Set new target operation mode."""
-        if not self.available:
-            return
-        assert isinstance(self._device, IndoorNasaDevice)
-        assert self._device.dhw_controller is not None
         if operation_mode == STATE_OFF:
-            await self._device.dhw_controller.turn_off()
+            await self.async_turn_off()
             return
         # Turn dhw power on and send new mode.
-        if (
-            self._device.dhw_controller.power is None
-            or not self._device.dhw_controller.power
-        ):
-            await self._device.dhw_controller.turn_on()
-        await self._device.dhw_controller.set_operation_mode(
-            HASS_TO_EHS_STATE[operation_mode]
+        await self._device.write_attributes(
+            {
+                InDhwWaterHeaterPower: True,
+                InDhwOpMode: HASS_TO_EHS_STATE[operation_mode],
+            }
         )
 
     async def async_turn_on(self, **kwargs: Any) -> None:
         """Turn the water heater on."""
-        if not self.available:
-            return
-        assert isinstance(self._device, IndoorNasaDevice)
-        assert self._device.dhw_controller is not None
-        await self._device.dhw_controller.turn_on()
+        await self._device.write_attribute(InDhwWaterHeaterPower, value=True)
 
     async def async_turn_off(self, **kwargs: Any) -> None:
         """Turn the water heater off."""
-        if not self.available:
-            return
-        assert isinstance(self._device, IndoorNasaDevice)
-        assert self._device.dhw_controller is not None
-        await self._device.dhw_controller.turn_off()
+        await self._device.write_attribute(InDhwWaterHeaterPower, value=False)
+
+    async def async_added_to_hass(self) -> None:
+        """Call when the entity is added to HASS."""
+        # Read some attributes by hand on startup to ensure we have the correct state.
+        await super().async_added_to_hass()  # Ensure essentials is registered first
+        try:
+            await self._device.get_attribute(DhwTargetTemperature, requires_read=True)
+            await self._device.get_attribute(DhwCurrentTemperature, requires_read=True)
+            await self._device.get_attribute(InDhwOpMode, requires_read=True)
+            await self._device.get_attribute(InDhwWaterHeaterPower, requires_read=True)
+        except TimeoutError:
+            pass  # If it does not respond, we will get it on the next update cycle.

@@ -22,6 +22,7 @@ from homeassistant.const import (
 )
 from pysamsungnasa.helpers import Address
 from pysamsungnasa.protocol.enum import AddressClass
+from pysamsungnasa.protocol.factory.messages import indoor, outdoor
 
 from .entity import SamsungEhsEntity
 
@@ -31,7 +32,8 @@ if TYPE_CHECKING:
     from homeassistant.config_entries import ConfigSubentry
     from homeassistant.core import HomeAssistant
     from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
-    from pysamsungnasa.device import IndoorNasaDevice, NasaDevice, OutdoorNasaDevice
+    from pysamsungnasa.device import NasaDevice
+    from pysamsungnasa.protocol.factory.types import BaseMessage
 
     from .coordinator import SamsungEhsDataUpdateCoordinator
     from .data import SamsungEhsConfigEntry
@@ -85,22 +87,8 @@ class SamsungEhsSensorEntityDescription(SensorEntityDescription):
     requires_read: bool = (
         False  # If true the sensor requires a read command to retrieve
     )
-    message_number: int | None = None
-    value_fn: Callable[[OutdoorNasaDevice | IndoorNasaDevice | NasaDevice], Any]
-
-
-@dataclass(kw_only=True, frozen=True)
-class IndoorEhsSensorEntityDescription(SamsungEhsSensorEntityDescription):
-    """Description for Samsung EHS sensor entities."""
-
-    value_fn: Callable[[IndoorNasaDevice], Any] | None = None
-
-
-@dataclass(kw_only=True, frozen=True)
-class OutdoorEhsSensorEntityDescription(SamsungEhsSensorEntityDescription):
-    """Description for Samsung EHS sensor entities."""
-
-    value_fn: Callable[[OutdoorNasaDevice], Any] | None = None
+    message: type[BaseMessage] | None = None
+    value_fn: Callable[[NasaDevice], Any] | None = None
 
 
 ALL_ENTITY_DESCRIPTIONS: tuple[SamsungEhsSensorEntityDescription, ...] = (
@@ -113,233 +101,233 @@ ALL_ENTITY_DESCRIPTIONS: tuple[SamsungEhsSensorEntityDescription, ...] = (
     ),
 )
 
-OUTDOOR_ENTITY_DESCRIPTIONS: tuple[OutdoorEhsSensorEntityDescription, ...] = (
-    OutdoorEhsSensorEntityDescription(
+OUTDOOR_ENTITY_DESCRIPTIONS: tuple[SamsungEhsSensorEntityDescription, ...] = (
+    SamsungEhsSensorEntityDescription(
         key=SamsungEhsSensorKey.OUTDOOR_TEMPERATURE,
         translation_key=SamsungEhsSensorKey.OUTDOOR_TEMPERATURE,
         device_class=SensorDeviceClass.TEMPERATURE,
         state_class=SensorStateClass.MEASUREMENT,
         native_unit_of_measurement=UnitOfTemperature.CELSIUS,
-        value_fn=lambda device: device.outdoor_temperature,
+        message=outdoor.OutdoorAirTemperature,
     ),
-    OutdoorEhsSensorEntityDescription(
+    SamsungEhsSensorEntityDescription(
         key=SamsungEhsSensorKey.OUTDOOR_COP,
         translation_key=SamsungEhsSensorKey.OUTDOOR_COP,
-        value_fn=lambda device: device.cop_rating,
+        value_fn=lambda device: 0,  # TODO
         state_class=SensorStateClass.MEASUREMENT,
     ),
-    OutdoorEhsSensorEntityDescription(
+    SamsungEhsSensorEntityDescription(
         key=SamsungEhsSensorKey.POWER_GENERATION,
         translation_key=SamsungEhsSensorKey.POWER_GENERATION,
-        value_fn=lambda device: device.power_generated_last_minute,
+        message=indoor.InGeneratedPowerLastMinute,
         native_unit_of_measurement=UnitOfPower.KILO_WATT,
         device_class=SensorDeviceClass.POWER,
         state_class=SensorStateClass.MEASUREMENT,
     ),
-    OutdoorEhsSensorEntityDescription(
+    SamsungEhsSensorEntityDescription(
         key=SamsungEhsSensorKey.ENERGY_CONSUMPTION,
         translation_key=SamsungEhsSensorKey.ENERGY_CONSUMPTION,
-        value_fn=lambda device: device.cumulative_energy,
+        message=outdoor.OutdoorCumulativeEnergy,
         native_unit_of_measurement=UnitOfEnergy.KILO_WATT_HOUR,
         device_class=SensorDeviceClass.ENERGY,
         state_class=SensorStateClass.TOTAL_INCREASING,
     ),
-    OutdoorEhsSensorEntityDescription(
+    SamsungEhsSensorEntityDescription(
         key=SamsungEhsSensorKey.ENERGY_GENERATION,
         translation_key=SamsungEhsSensorKey.ENERGY_GENERATION,
-        value_fn=lambda device: device.power_produced,
+        message=indoor.TotalEnergyGenerated,
         native_unit_of_measurement=UnitOfEnergy.KILO_WATT_HOUR,
         device_class=SensorDeviceClass.ENERGY,
         state_class=SensorStateClass.TOTAL_INCREASING,
     ),
-    OutdoorEhsSensorEntityDescription(
+    SamsungEhsSensorEntityDescription(
         key=SamsungEhsSensorKey.POWER_USAGE,
         translation_key=SamsungEhsSensorKey.POWER_USAGE,
-        value_fn=lambda device: device.power_consumption,
+        message=outdoor.OutdoorInstantaneousPower,
         native_unit_of_measurement=UnitOfPower.KILO_WATT,
         device_class=SensorDeviceClass.POWER,
         state_class=SensorStateClass.MEASUREMENT,
     ),
-    OutdoorEhsSensorEntityDescription(
-        key=SamsungEhsSensorKey.WATER_PRESSURE,
-        translation_key=SamsungEhsSensorKey.WATER_PRESSURE,
-        native_unit_of_measurement="bar",
-        device_class=SensorDeviceClass.PRESSURE,
-        state_class=SensorStateClass.MEASUREMENT,
-        message_number=0x82FE,
-    ),
-    OutdoorEhsSensorEntityDescription(
+    # SamsungEhsSensorEntityDescription(
+    #     key=SamsungEhsSensorKey.WATER_PRESSURE,
+    #     translation_key=SamsungEhsSensorKey.WATER_PRESSURE,
+    #     native_unit_of_measurement="bar",
+    #     device_class=SensorDeviceClass.PRESSURE,
+    #     state_class=SensorStateClass.MEASUREMENT,
+    #     message=0x82FE,
+    # ),
+    SamsungEhsSensorEntityDescription(
         key=SamsungEhsSensorKey.COMPRESSOR_FREQUENCY,
         translation_key=SamsungEhsSensorKey.COMPRESSOR_FREQUENCY,
         native_unit_of_measurement="Hz",
         device_class=SensorDeviceClass.FREQUENCY,
         state_class=SensorStateClass.MEASUREMENT,
-        message_number=0x8238,
+        message=outdoor.OutdoorCompressorRunFrequency,
     ),
-    OutdoorEhsSensorEntityDescription(
+    SamsungEhsSensorEntityDescription(
         key=SamsungEhsSensorKey.TARGET_COMPRESSOR_FREQUENCY,
         translation_key=SamsungEhsSensorKey.TARGET_COMPRESSOR_FREQUENCY,
         native_unit_of_measurement="Hz",
         device_class=SensorDeviceClass.FREQUENCY,
         state_class=SensorStateClass.MEASUREMENT,
-        message_number=0x8237,
+        message=outdoor.OutdoorCompressorTargetFrequency,
     ),
-    OutdoorEhsSensorEntityDescription(
+    SamsungEhsSensorEntityDescription(
         key=SamsungEhsSensorKey.EVA_OUT_TEMPERATURE,
         translation_key=SamsungEhsSensorKey.EVA_OUT_TEMPERATURE,
         native_unit_of_measurement=UnitOfTemperature.CELSIUS,
         device_class=SensorDeviceClass.TEMPERATURE,
         state_class=SensorStateClass.MEASUREMENT,
-        message_number=0x82E7,
+        message=outdoor.OutdoorCombinedSuctionTemp,
     ),
-    OutdoorEhsSensorEntityDescription(
+    SamsungEhsSensorEntityDescription(
         key=SamsungEhsSensorKey.EVA_IN_TEMPERATURE,
         translation_key=SamsungEhsSensorKey.EVA_IN_TEMPERATURE,
         native_unit_of_measurement=UnitOfTemperature.CELSIUS,
         device_class=SensorDeviceClass.TEMPERATURE,
         state_class=SensorStateClass.MEASUREMENT,
-        message_number=0x8218,
+        message=outdoor.OutdoorCondoutTemp,
     ),
-    OutdoorEhsSensorEntityDescription(
+    SamsungEhsSensorEntityDescription(
         key=SamsungEhsSensorKey.CONDENSER_OUT_TEMPERATURE,
         translation_key=SamsungEhsSensorKey.CONDENSER_OUT_TEMPERATURE,
         native_unit_of_measurement=UnitOfTemperature.CELSIUS,
         device_class=SensorDeviceClass.TEMPERATURE,
         state_class=SensorStateClass.MEASUREMENT,
-        message_number=0x82DE,
+        message=outdoor.CondenserOutTemperature,
     ),
-    OutdoorEhsSensorEntityDescription(
+    SamsungEhsSensorEntityDescription(
         key=SamsungEhsSensorKey.CONDENSER_IN_TEMPERATURE,
         translation_key=SamsungEhsSensorKey.CONDENSER_IN_TEMPERATURE,
         native_unit_of_measurement=UnitOfTemperature.CELSIUS,
         device_class=SensorDeviceClass.TEMPERATURE,
         state_class=SensorStateClass.MEASUREMENT,
-        message_number=0x820A,
+        message=outdoor.CondenserInTemperature,
     ),
-    OutdoorEhsSensorEntityDescription(
+    SamsungEhsSensorEntityDescription(
         key=SamsungEhsSensorKey.FAN_1_SPEED,
         translation_key=SamsungEhsSensorKey.FAN_1_SPEED,
         native_unit_of_measurement="RPM",
         state_class=SensorStateClass.MEASUREMENT,
-        message_number=0x823D,
+        message=outdoor.OutdoorFanRpm1,
     ),
-    OutdoorEhsSensorEntityDescription(
+    SamsungEhsSensorEntityDescription(
         key=SamsungEhsSensorKey.FAN_2_SPEED,
         translation_key=SamsungEhsSensorKey.FAN_2_SPEED,
         native_unit_of_measurement="RPM",
         state_class=SensorStateClass.MEASUREMENT,
-        message_number=0x823E,
+        message=outdoor.OutdoorFanRpm2,
     ),
-    OutdoorEhsSensorEntityDescription(
+    SamsungEhsSensorEntityDescription(
         key=SamsungEhsSensorKey.EEV_POSITION,
         translation_key=SamsungEhsSensorKey.EEV_POSITION,
         state_class=SensorStateClass.MEASUREMENT,
-        message_number=0x8229,
+        message=outdoor.OutdoorEev1Opening,
     ),
-    OutdoorEhsSensorEntityDescription(
+    SamsungEhsSensorEntityDescription(
         key=SamsungEhsSensorKey.TW1_TEMPERATURE,
         translation_key=SamsungEhsSensorKey.TW1_TEMPERATURE,
         native_unit_of_measurement=UnitOfTemperature.CELSIUS,
         device_class=SensorDeviceClass.TEMPERATURE,
         state_class=SensorStateClass.MEASUREMENT,
-        message_number=0x82DF,
+        message=outdoor.OutdoorTw1Temperature,
     ),
-    OutdoorEhsSensorEntityDescription(
+    SamsungEhsSensorEntityDescription(
         key=SamsungEhsSensorKey.TW2_TEMPERATURE,
         translation_key=SamsungEhsSensorKey.TW2_TEMPERATURE,
         native_unit_of_measurement=UnitOfTemperature.CELSIUS,
         device_class=SensorDeviceClass.TEMPERATURE,
         state_class=SensorStateClass.MEASUREMENT,
-        message_number=0x82E0,
+        message=outdoor.OutdoorTw2Temperature,
     ),
-    OutdoorEhsSensorEntityDescription(
+    SamsungEhsSensorEntityDescription(
         key=SamsungEhsSensorKey.SUCTION_TEMPERATURE,
         translation_key=SamsungEhsSensorKey.SUCTION_TEMPERATURE,
         native_unit_of_measurement=UnitOfTemperature.CELSIUS,
         device_class=SensorDeviceClass.TEMPERATURE,
         state_class=SensorStateClass.MEASUREMENT,
-        message_number=0x821A,
+        message=outdoor.OutdoorSuctionSensorTemperature,
     ),
-    OutdoorEhsSensorEntityDescription(
+    SamsungEhsSensorEntityDescription(
         key=SamsungEhsSensorKey.DISCHARGE_TARGET_TEMPERATURE,
         translation_key=SamsungEhsSensorKey.DISCHARGE_TARGET_TEMPERATURE,
         native_unit_of_measurement=UnitOfTemperature.CELSIUS,
         device_class=SensorDeviceClass.TEMPERATURE,
         state_class=SensorStateClass.MEASUREMENT,
-        message_number=0x8223,
+        message=outdoor.OutdoorTargetDischargeTemperature,
     ),
 )
 
-INDOOR_ENTITY_DESCRIPTIONS: tuple[IndoorEhsSensorEntityDescription, ...] = (
-    IndoorEhsSensorEntityDescription(
+INDOOR_ENTITY_DESCRIPTIONS: tuple[SamsungEhsSensorEntityDescription, ...] = (
+    SamsungEhsSensorEntityDescription(
         key=SamsungEhsSensorKey.WATER_PUMP_SPEED,
         translation_key=SamsungEhsSensorKey.WATER_PUMP_SPEED,
         native_unit_of_measurement=PERCENTAGE,
         state_class=SensorStateClass.MEASUREMENT,
-        message_number=0x40C4,
+        message=indoor.InWaterPumpPwmValueMessage,
         requires_read=True,
     ),
-    IndoorEhsSensorEntityDescription(
+    SamsungEhsSensorEntityDescription(
         key=SamsungEhsSensorKey.RETURN_WATER_TEMPERATURE,
         translation_key=SamsungEhsSensorKey.RETURN_WATER_TEMPERATURE,
         native_unit_of_measurement=UnitOfTemperature.CELSIUS,
         device_class=SensorDeviceClass.TEMPERATURE,
         state_class=SensorStateClass.MEASUREMENT,
-        message_number=0x4236,
+        message=indoor.InTempWaterInMessage,
     ),
-    IndoorEhsSensorEntityDescription(
+    SamsungEhsSensorEntityDescription(
         key=SamsungEhsSensorKey.LEAVING_WATER_TEMPERATURE,
         translation_key=SamsungEhsSensorKey.LEAVING_WATER_TEMPERATURE,
         native_unit_of_measurement=UnitOfTemperature.CELSIUS,
         device_class=SensorDeviceClass.TEMPERATURE,
         state_class=SensorStateClass.MEASUREMENT,
-        message_number=0x4238,
+        message=indoor.IndoorFlowTemperature,
     ),
-    IndoorEhsSensorEntityDescription(
+    SamsungEhsSensorEntityDescription(
         key=SamsungEhsSensorKey.FLOW_RATE,
         translation_key=SamsungEhsSensorKey.FLOW_RATE,
         native_unit_of_measurement="L/min",
         state_class=SensorStateClass.MEASUREMENT,
-        message_number=0x42E9,
+        message=indoor.InFlowSensorCalculationMessage,
     ),
-    IndoorEhsSensorEntityDescription(
+    SamsungEhsSensorEntityDescription(
         key=SamsungEhsSensorKey.FLOW_SETPOINT_TEMPERATURE,
         translation_key=SamsungEhsSensorKey.FLOW_SETPOINT_TEMPERATURE,
         native_unit_of_measurement=UnitOfTemperature.CELSIUS,
         device_class=SensorDeviceClass.TEMPERATURE,
         state_class=SensorStateClass.MEASUREMENT,
-        message_number=0x4247,
+        message=indoor.InWaterOutletTargetTemperature,
     ),
-    IndoorEhsSensorEntityDescription(
+    SamsungEhsSensorEntityDescription(
         key=SamsungEhsSensorKey.WATER_LAW_TARGET_TEMPERATURE,
         translation_key=SamsungEhsSensorKey.WATER_LAW_TARGET_TEMPERATURE,
         native_unit_of_measurement=UnitOfTemperature.CELSIUS,
         device_class=SensorDeviceClass.TEMPERATURE,
         state_class=SensorStateClass.MEASUREMENT,
-        message_number=0x4248,
+        message=indoor.InWaterLawTargetTemperature,
     ),
-    IndoorEhsSensorEntityDescription(
+    SamsungEhsSensorEntityDescription(
         key=SamsungEhsSensorKey.COMPRESSOR_DHW_STANDARD_TEMPERATURE,
         translation_key=SamsungEhsSensorKey.COMPRESSOR_DHW_STANDARD_TEMPERATURE,
         native_unit_of_measurement=UnitOfTemperature.CELSIUS,
         device_class=SensorDeviceClass.TEMPERATURE,
         state_class=SensorStateClass.MEASUREMENT,
-        message_number=0x427C,
+        message=indoor.InFsv5021,
         requires_read=True,
     ),
-    IndoorEhsSensorEntityDescription(
+    SamsungEhsSensorEntityDescription(
         key=SamsungEhsSensorKey.DHW_MIN_OPERATING_TIME,
         translation_key=SamsungEhsSensorKey.DHW_MIN_OPERATING_TIME,
         native_unit_of_measurement="minutes",
         state_class=SensorStateClass.MEASUREMENT,
-        message_number=0x4263,
+        message=indoor.InFsv3024,
     ),
-    IndoorEhsSensorEntityDescription(
+    SamsungEhsSensorEntityDescription(
         key=SamsungEhsSensorKey.DHW_MAX_OPERATING_TIME,
         translation_key=SamsungEhsSensorKey.DHW_MAX_OPERATING_TIME,
         native_unit_of_measurement="minutes",
         state_class=SensorStateClass.MEASUREMENT,
-        message_number=0x4264,
+        message=indoor.InFsv3025,
     ),
 )
 
@@ -406,7 +394,7 @@ class SamsungEhsSensor(SamsungEhsEntity, SensorEntity):
         super().__init__(
             coordinator,
             subentry=subentry,
-            message_number=entity_description.message_number,
+            message=entity_description.message,
             key=entity_description.key,
             requires_read=entity_description.requires_read,
         )
@@ -417,14 +405,16 @@ class SamsungEhsSensor(SamsungEhsEntity, SensorEntity):
         """Return the native value."""
         if self._device is None:
             return None
-        if self.entity_description.message_number is not None:
-            if self.entity_description.message_number in self._device.attributes:
+        if self.entity_description.message is not None:
+            if self.entity_description.message.MESSAGE_ID in self._device.attributes:
                 val = self._device.attributes[
-                    self.entity_description.message_number
+                    self.entity_description.message.MESSAGE_ID
                 ].VALUE
                 if val == "ffff":  # Sensor not available for this device
                     return None
                 return val
+            return None
+        if self.entity_description.value_fn is None:
             return None
         return self.entity_description.value_fn(self._device)
 
@@ -433,12 +423,20 @@ class SamsungEhsSensor(SamsungEhsEntity, SensorEntity):
         """Return if the sensor is available."""
         if self._device is None:
             return False
-        if self.entity_description.value_fn is not None:
+        if (
+            self.entity_description.value_fn is None
+            and self.entity_description.message is None
+        ):
+            return False
+        if self.entity_description.message is None:
             return True
         return (
             self.coordinator.config_entry.runtime_data.client.client.is_connected
-            and self._message_number in self._device.attributes
-            and self._device.attributes[self._message_number].VALUE != "ffff"
+            and self.entity_description.message.MESSAGE_ID in self._device.attributes
+            and self._device.attributes[
+                self.entity_description.message.MESSAGE_ID
+            ].VALUE
+            != "ffff"
         )
 
     @property
@@ -451,7 +449,25 @@ class SamsungEhsSensor(SamsungEhsEntity, SensorEntity):
         return {
             msg_number: {
                 "name": value.MESSAGE_NAME,
-                "value": value.VALUE,
+                "value": str(value.VALUE),
             }
             for msg_number, value in self._device.attributes.items()
         }
+
+    async def async_added_to_hass(self) -> None:
+        """Execute when entity is added to hass."""
+        # We need to subscribe to updates for two messages
+        # These are added because they are part of a different type of NASA device
+        if self.entity_description.message is None:
+            return await super().async_added_to_hass()
+        if (
+            self.entity_description.message.MESSAGE_ID in (0x4426, 0x4427)
+            and self._device.device_type == AddressClass.OUTDOOR
+        ):
+            self.coordinator.config_entry.runtime_data.client.parser.add_packet_listener(
+                0x4426, self._device.handle_packet
+            )
+            self.coordinator.config_entry.runtime_data.client.parser.add_packet_listener(
+                0x4427, self._device.handle_packet
+            )
+        return await super().async_added_to_hass()

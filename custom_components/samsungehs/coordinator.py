@@ -28,9 +28,6 @@ class SamsungEhsDataUpdateCoordinator(DataUpdateCoordinator):
                     continue
                 if entry.unique_id not in self.config_entry.runtime_data.client.devices:
                     continue
-                await self.config_entry.runtime_data.client.devices[
-                    entry.unique_id
-                ].get_configuration()
             self._first_refresh = False
 
         # Messages can only be read in batches of 10

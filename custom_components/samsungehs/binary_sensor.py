@@ -7,7 +7,6 @@ from dataclasses import dataclass
 from enum import StrEnum
 from typing import TYPE_CHECKING, Any
 
-from acme import messages
 from homeassistant.components.binary_sensor import (
     BinarySensorDeviceClass,
     BinarySensorEntity,
@@ -16,20 +15,21 @@ from homeassistant.components.binary_sensor import (
 from pysamsungnasa.helpers import Address
 from pysamsungnasa.protocol.enum import (
     AddressClass,
+    InOperationMode,
+    InThermostatStatus,
+    OutdoorCompressorLoad,
     OutdoorOperationStatus,
     OutdoorPumpOutLoad,
-    OutdoorCompressorLoad,
-    InThermostatStatus,
-    InOperationMode,
 )
+from pysamsungnasa.protocol.factory.messages import indoor, outdoor
 
 from .entity import SamsungEhsEntity
 
 if TYPE_CHECKING:
-    from collections.abc import Callable
-
+    from homeassistant.config_entries import ConfigSubentry
     from homeassistant.core import HomeAssistant
     from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
+    from pysamsungnasa.protocol.factory.types import BaseMessage
 
     from .coordinator import SamsungEhsDataUpdateCoordinator
     from .data import SamsungEhsConfigEntry
@@ -55,7 +55,7 @@ class SamsungEhsBinarySensorEntityDescription(BinarySensorEntityDescription):
     """Description for Samsung EHS binary sensor entities."""
 
     requires_read: bool = False
-    message_number: int | None = None
+    message: type[BaseMessage] | None = None
     messages_expected_value: Any | None = None
 
 
@@ -65,7 +65,7 @@ OUTDOOR_ENTITY_DESCRIPTIONS = (
         key=SamsungEhsBinarySensorKey.COMPRESSOR_RUNNING,
         translation_key=SamsungEhsBinarySensorKey.COMPRESSOR_RUNNING,
         device_class=BinarySensorDeviceClass.RUNNING,
-        message_number=0x8010,
+        message=outdoor.OutdoorCompressor1LoadMessage,
         messages_expected_value=OutdoorCompressorLoad.ON,
         requires_read=True,
     ),
@@ -74,7 +74,7 @@ OUTDOOR_ENTITY_DESCRIPTIONS = (
         translation_key=SamsungEhsBinarySensorKey.CIRCULATION_PUMP_RUNNING,
         device_class=BinarySensorDeviceClass.RUNNING,
         messages_expected_value=OutdoorPumpOutLoad.ON,
-        message_number=0x8027,
+        message=outdoor.OutdoorPumpOutValveStatus,
         requires_read=True,
     ),
     SamsungEhsBinarySensorEntityDescription(
@@ -82,7 +82,7 @@ OUTDOOR_ENTITY_DESCRIPTIONS = (
         translation_key=SamsungEhsBinarySensorKey.HP_RUNNING,
         device_class=BinarySensorDeviceClass.RUNNING,
         messages_expected_value=OutdoorOperationStatus.OP_NORMAL,
-        message_number=0x8001,
+        message=outdoor.OutdoorOperationStatusMessage,
     ),
 )
 
@@ -92,42 +92,42 @@ INDOOR_ENTITY_DESCRIPTIONS = (
         key=SamsungEhsBinarySensorKey.INDOOR_DHW_ON,
         translation_key=SamsungEhsBinarySensorKey.INDOOR_DHW_ON,
         device_class=BinarySensorDeviceClass.RUNNING,
-        message_number=0x4065,
+        message=indoor.InDhwOperating,
         messages_expected_value=True,
     ),
     SamsungEhsBinarySensorEntityDescription(
         key=SamsungEhsBinarySensorKey.INDOOR_HEATING_ON,
         translation_key=SamsungEhsBinarySensorKey.INDOOR_HEATING_ON,
         device_class=BinarySensorDeviceClass.RUNNING,
-        message_number=0x4001,
+        message=indoor.InOperationModeMessage,
         messages_expected_value=InOperationMode.HEAT,
     ),
     SamsungEhsBinarySensorEntityDescription(
         key=SamsungEhsBinarySensorKey.INDOOR_COOLING_ON,
         translation_key=SamsungEhsBinarySensorKey.INDOOR_COOLING_ON,
         device_class=BinarySensorDeviceClass.RUNNING,
-        message_number=0x4001,
+        message=indoor.InOperationModeMessage,
         messages_expected_value=InOperationMode.COOL,
     ),
     SamsungEhsBinarySensorEntityDescription(
         key=SamsungEhsBinarySensorKey.INDOOR_BOOSTER_HEATER_ON,
         translation_key=SamsungEhsBinarySensorKey.INDOOR_BOOSTER_HEATER_ON,
         device_class=BinarySensorDeviceClass.RUNNING,
-        message_number=0x4087,
+        message=indoor.InBoosterHeaterMessage,
         messages_expected_value=True,
     ),
     SamsungEhsBinarySensorEntityDescription(
         key=SamsungEhsBinarySensorKey.INDOOR_Z1_HEATING_ON,
         translation_key=SamsungEhsBinarySensorKey.INDOOR_Z1_HEATING_ON,
         device_class=BinarySensorDeviceClass.RUNNING,
-        message_number=0x4069,
+        message=indoor.InThermostatZone1Status,
         messages_expected_value=InThermostatStatus.HEAT,
     ),
     SamsungEhsBinarySensorEntityDescription(
         key=SamsungEhsBinarySensorKey.INDOOR_Z2_HEATING_ON,
         translation_key=SamsungEhsBinarySensorKey.INDOOR_Z2_HEATING_ON,
         device_class=BinarySensorDeviceClass.RUNNING,
-        message_number=0x406A,
+        message=indoor.InThermostatZone2Status,
         messages_expected_value=InThermostatStatus.HEAT,
     ),
 )
@@ -179,13 +179,13 @@ class SamsungEhsBinarySensor(SamsungEhsEntity, BinarySensorEntity):
         self,
         coordinator: SamsungEhsDataUpdateCoordinator,
         entity_description: SamsungEhsBinarySensorEntityDescription,
-        subentry,
+        subentry: ConfigSubentry,
     ) -> None:
         """Initialize the sensor class."""
         super().__init__(
             coordinator,
             subentry=subentry,
-            message_number=entity_description.message_number,
+            message=entity_description.message,
             key=entity_description.key,
             requires_read=entity_description.requires_read,
         )
@@ -198,9 +198,6 @@ class SamsungEhsBinarySensor(SamsungEhsEntity, BinarySensorEntity):
         """Return true if the binary_sensor is on."""
         if self._device is None:
             return None
-        if self.entity_description.message_number not in self._device.attributes:
-            return None
-        return (
-            self.entity_description.messages_expected_value
-            == self._device.attributes[self.entity_description.message_number].VALUE
+        return self.entity_description.messages_expected_value == self.get_attribute(
+            self.entity_description.message
         )

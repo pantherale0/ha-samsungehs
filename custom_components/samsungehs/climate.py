@@ -15,13 +15,31 @@ from pysamsungnasa.helpers import Address
 from pysamsungnasa.protocol.enum import (
     AddressClass,
     InOperationMode,
+    InOperationPower,
     OutdoorIndoorDefrostStep,
     OutdoorOperationStatus,
 )
+from pysamsungnasa.protocol.factory.messages.indoor import (
+    IndoorFlowTemperature,
+    InOperationModeMessage,
+    InOperationPowerMessage,
+    InRoomTemperature,
+    InTargetTemperature,
+    InWaterOutletTargetTemperature,
+)
+from pysamsungnasa.protocol.factory.messages.outdoor import (
+    OutdoorDefrostStatus,
+    OutdoorOperationStatusMessage,
+)
 
 from .entity import SamsungEhsEntity
+from .helpers import (
+    async_set_space_heating_target_temperature,
+    get_temperature_control_mode,
+)
 
 if TYPE_CHECKING:
+    from homeassistant.config_entries import ConfigSubentry
     from homeassistant.core import HomeAssistant
     from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
 
@@ -77,88 +95,81 @@ class SamsungEhsClimate(SamsungEhsEntity, ClimateEntity):
     def __init__(
         self,
         coordinator: SamsungEhsDataUpdateCoordinator,
-        subentry,
+        subentry: ConfigSubentry,
     ) -> None:
+        """Initialize."""
         super().__init__(
             coordinator,
             subentry=subentry,
-            message_number=None,
+            message=None,
             key="heating",
         )  # No message number for this mode.
 
     @property
-    def available(self) -> bool:
-        """Return if the sensor is available."""
-        return self._device is not None and self._device.climate_controller is not None
-
-    @property
     def current_temperature(self) -> float | None:
         """Return current temperature."""
-        if self.available:
-            return self._device.climate_controller.f_current_temperature
+        if not self.available:
+            return None
+        control_mode = get_temperature_control_mode(self._device)
+        if control_mode == "target_indoor_temperature":
+            value = self.get_attribute(InRoomTemperature)
+        else:
+            value = self.get_attribute(IndoorFlowTemperature)
+        return (
+            float(value) if value is not None and not isinstance(value, str) else None
+        )
 
     @property
     def target_temperature(self) -> float | None:
         """Return target temperature."""
-        if self.available:
-            return self._device.climate_controller.f_target_temperature
-
-    @property
-    def current_humidity(self) -> float | None:
-        """Return current humidity."""
-        if (
-            self.available
-            and self._device.climate_controller.current_humidity is not None
-            and self._device.climate_controller.current_humidity <= 100
-        ):
-            return self._device.climate_controller.current_humidity
+        if not self.available:
+            return None
+        control_mode = get_temperature_control_mode(self._device)
+        if control_mode == "target_indoor_temperature":
+            value = self.get_attribute(InTargetTemperature)
+        else:
+            value = self.get_attribute(InWaterOutletTargetTemperature)
+        return (
+            float(value) if value is not None and not isinstance(value, str) else None
+        )
 
     @property
     def hvac_mode(self) -> HVACMode | None:
         """Return the current operation."""
-        if self.available:
-            if (
-                self._device.climate_controller.power is None
-                or not self._device.climate_controller.power
-            ):
-                return HVACMode.OFF
-            return EHS_OP_TO_HASS.get(self._device.climate_controller.current_mode)
+        if not self.available:
+            return None
+        if self.get_attribute(InOperationPowerMessage) == InOperationPower.OFF:
+            return HVACMode.OFF
+        return EHS_OP_TO_HASS.get(self.get_attribute(InOperationModeMessage))
 
     @property
     def hvac_action(self) -> HVACAction | None:
         """Return the current operation."""
         if (
-            self._device is None
-            or self._device.climate_controller is None
-            or self._device.climate_controller.power is None
-            or self.hvac_mode is None
-        ):
-            return None
-        if (
             self.hvac_mode == HVACMode.COOL
-            and self._device.climate_controller.power
-            and self._device.climate_controller.outdoor_operation_status
+            and self.get_attribute(InOperationPowerMessage) != InOperationPower.OFF
+            and self.get_attribute(OutdoorOperationStatusMessage)
             == OutdoorOperationStatus.OP_NORMAL
         ):
             return HVACAction.COOLING
         if (
             self.hvac_mode == HVACMode.HEAT
-            and self._device.climate_controller.power
-            and self._device.climate_controller.outdoor_operation_status
+            and self.get_attribute(InOperationPowerMessage) != InOperationPower.OFF
+            and self.get_attribute(OutdoorOperationStatusMessage)
             == OutdoorOperationStatus.OP_NORMAL
         ):
             return HVACAction.HEATING
         if (
-            self._device.climate_controller.outdoor_operation_status
+            self.get_attribute(OutdoorOperationStatusMessage)
             == OutdoorOperationStatus.OP_SAFETY
         ):
             return HVACAction.PREHEATING
         if (
-            self._device.climate_controller.outdoor_defrost_status
+            self.get_attribute(OutdoorDefrostStatus)
             != OutdoorIndoorDefrostStep.NO_DEFROST_OPERATION
         ):
             return HVACAction.DEFROSTING
-        if not self._device.climate_controller.power:
+        if self.get_attribute(InOperationPowerMessage) == InOperationPower.OFF:
             return HVACAction.OFF
         return HVACAction.IDLE
 
@@ -174,10 +185,9 @@ class SamsungEhsClimate(SamsungEhsEntity, ClimateEntity):
 
     async def async_set_temperature(self, **kwargs: Any) -> None:
         """Set new target temperature."""
-        if self.available:
-            await self._device.climate_controller.set_target_temperature(
-                kwargs["temperature"]
-            )
+        await async_set_space_heating_target_temperature(
+            self._device, kwargs["temperature"]
+        )
 
     async def async_set_hvac_mode(self, hvac_mode: HVACMode) -> None:
         """Set new target operation mode."""
@@ -185,15 +195,30 @@ class SamsungEhsClimate(SamsungEhsEntity, ClimateEntity):
             if hvac_mode == HVACMode.OFF:
                 await self.async_turn_off()
                 return
-            await self._device.climate_controller.set_mode(HASS_TO_EHS_OP[hvac_mode])
+            await self._device.write_attribute(
+                InOperationModeMessage, HASS_TO_EHS_OP[hvac_mode]
+            )
             await self.async_turn_on()
 
     async def async_turn_off(self) -> None:
         """Turn the climate off."""
-        if self.available:
-            await self._device.climate_controller.turn_off()
+        await self._device.write_attribute(
+            InOperationPowerMessage, InOperationPower.OFF
+        )
 
     async def async_turn_on(self) -> None:
         """Turn the climate on."""
-        if self.available:
-            await self._device.climate_controller.turn_on()
+        await self._device.write_attribute(
+            InOperationPowerMessage, InOperationPower.ON_STATE_1
+        )
+
+    async def async_added_to_hass(self) -> None:
+        """Call when the entity is added to HASS."""
+        # We need to add a subscription for the outdoor operation status to determine hvac_action  # noqa: E501
+        self.coordinator.config_entry.runtime_data.client.parser.add_packet_listener(
+            OutdoorOperationStatusMessage.MESSAGE_ID, self._device.handle_packet
+        )
+        self.coordinator.config_entry.runtime_data.client.parser.add_packet_listener(
+            OutdoorDefrostStatus.MESSAGE_ID, self._device.handle_packet
+        )
+        return await super().async_added_to_hass()
