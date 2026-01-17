@@ -178,6 +178,11 @@
             "quiet_mode": {
                 "name": "Quiet Mode"
             }
+        },
+        "number": {
+            "frequency_ratio_control_percent": {
+                "name": "Frequency Ratio Control Percent"
+            }
         }
     }
 }

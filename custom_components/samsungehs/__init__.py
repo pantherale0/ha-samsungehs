@@ -25,6 +25,7 @@ PLATFORMS: list[Platform] = [
     Platform.BINARY_SENSOR,
     Platform.WATER_HEATER,
     Platform.SWITCH,
+    Platform.NUMBER,
 ]
 
 

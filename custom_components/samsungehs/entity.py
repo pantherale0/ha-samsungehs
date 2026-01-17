@@ -94,7 +94,7 @@ class SamsungEhsEntity(CoordinatorEntity[SamsungEhsDataUpdateCoordinator]):
 
     def get_attribute(
         self, message: type[BaseMessage] | None = None
-    ) -> str | int | float | dict | None:
+    ) -> str | int | float | dict | bool | None:
         """Get the attribute value for this entity."""
         if not isinstance(message, type) or (
             not issubclass(message, BaseMessage) and message is not None

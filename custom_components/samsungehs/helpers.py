@@ -1,5 +1,7 @@
 """Samsung EHS helper functions."""
 
+from typing import Any
+
 from pysamsungnasa.device import NasaDevice
 from pysamsungnasa.protocol.enum import DataType, InOperationMode
 from pysamsungnasa.protocol.factory.messages.indoor import (
@@ -10,6 +12,7 @@ from pysamsungnasa.protocol.factory.messages.indoor import (
     InWaterLawTargetTemperature,
     InWaterOutletTargetTemperature,
 )
+from pysamsungnasa.protocol.factory.types import BaseMessage
 
 
 def get_temperature_control_mode(device: NasaDevice) -> str | None:
@@ -57,3 +60,17 @@ async def async_set_space_heating_target_temperature(
         )
     else:
         return
+
+
+def get_dict_value(
+    message: BaseMessage,
+    key: str,
+    default: Any = None,
+) -> Any:
+    """Get a value from a message attribute that is a dictionary."""
+    if message.VALUE is None:
+        return default
+    value = message.VALUE
+    if not isinstance(value, dict):
+        return value
+    return value.get(key, default)
