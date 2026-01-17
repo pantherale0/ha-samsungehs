@@ -230,4 +230,20 @@ class SamsungEhsClimate(SamsungEhsEntity, ClimateEntity):
         self.coordinator.config_entry.runtime_data.client.parser.add_packet_listener(
             OutdoorDefrostStatus.MESSAGE_ID, self._device.handle_packet
         )
+        # Read initial values
+        await self._device.get_attribute(
+            OutdoorOperationStatusMessage, requires_read=True
+        )
+        await self._device.get_attribute(OutdoorDefrostStatus, requires_read=True)
+        await self._device.get_attribute(InOperationPowerMessage, requires_read=True)
+        await self._device.get_attribute(InOperationModeMessage, requires_read=True)
+        await self._device.get_attribute(InRoomTemperature, requires_read=True)
+        await self._device.get_attribute(IndoorFlowTemperature, requires_read=True)
+        await self._device.get_attribute(InTargetTemperature, requires_read=True)
+        await self._device.get_attribute(
+            InWaterOutletTargetTemperature, requires_read=True
+        )
+        await self._device.get_attribute(
+            InWaterLawTargetTemperature, requires_read=True
+        )
         return await super().async_added_to_hass()

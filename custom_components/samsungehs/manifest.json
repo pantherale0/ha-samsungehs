@@ -10,6 +10,6 @@
   "issue_tracker": "https://github.com/pantherale0/ha-samsungehs/issues",
   "version": "0.2.0",
   "requirements": [
-    "pysamsungnasa==1.1.2"
+    "pysamsungnasa==1.1.3"
   ]
 }
