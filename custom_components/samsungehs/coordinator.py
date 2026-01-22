@@ -5,11 +5,6 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Any
 
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator
-from pysamsungnasa.protocol.factory.messages.basic import (
-    ProductModelName,
-    SerialNumber,
-    DbCodeMiComMainMessage,
-)
 
 if TYPE_CHECKING:
     from .data import SamsungEhsConfigEntry
@@ -27,31 +22,16 @@ class SamsungEhsDataUpdateCoordinator(DataUpdateCoordinator):
             # Attempt to reconnect
             await self.config_entry.runtime_data.client.start()
         if self._first_refresh:
-            for entry in self.config_entry.subentries.values():
-                if entry.unique_id is None:
-                    continue
-                if entry.unique_id not in self.config_entry.runtime_data.client.devices:
-                    continue
-                # Collect model information if not already present
-                device = self.config_entry.runtime_data.client.devices[entry.unique_id]
-                if ProductModelName.MESSAGE_ID not in device.attributes:
-                    await device.get_attribute(ProductModelName, requires_read=True)
-                if SerialNumber.MESSAGE_ID not in device.attributes:
-                    await device.get_attribute(SerialNumber, requires_read=True)
-                if DbCodeMiComMainMessage.MESSAGE_ID not in device.attributes:
-                    await device.get_attribute(
-                        DbCodeMiComMainMessage, requires_read=True
+            # Add all messages that need to be read on first run
+            for (
+                device_address,
+                messages,
+            ) in self.config_entry.runtime_data.first_run_messages.items():
+                for i in range(0, len(messages), 10):
+                    batch = messages[i : i + 10]
+                    await self.config_entry.runtime_data.client.client.nasa_read(
+                        batch, device_address
                     )
-                # Add all messages that need to be read on first run
-                for (
-                    device_address,
-                    messages,
-                ) in self.config_entry.runtime_data.first_run_messages.items():
-                    for i in range(0, len(messages), 10):
-                        batch = messages[i : i + 10]
-                        await self.config_entry.runtime_data.client.client.nasa_read(
-                            batch, device_address
-                        )
             self._first_refresh = False
 
         # Messages can only be read in batches of 10
