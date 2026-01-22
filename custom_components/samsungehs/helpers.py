@@ -3,7 +3,7 @@
 from typing import Any
 
 from pysamsungnasa.device import NasaDevice
-from pysamsungnasa.protocol.enum import DataType, InOperationMode
+from pysamsungnasa.protocol.enum import DataType, InOperationMode, SamsungEnum
 from pysamsungnasa.protocol.factory.messages.indoor import (
     InFsv2091UseThermostat1,
     InFsv2092UseThermostat2,
@@ -74,3 +74,8 @@ def get_dict_value(
     if not isinstance(value, dict):
         return value
     return value.get(key, default)
+
+
+def convert_enum_to_select_options(enum_class: type[SamsungEnum]) -> list[str]:
+    """Convert a SamsungEnum class to a list of select options."""
+    return [member.name.replace("_", " ").lower() for member in enum_class]

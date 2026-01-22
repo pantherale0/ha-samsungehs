@@ -177,11 +177,52 @@
             },
             "quiet_mode": {
                 "name": "Quiet Mode"
+            },
+            "dhw_disinfection": {
+                "name": "DHW Disinfection Cycle"
             }
         },
         "number": {
             "frequency_ratio_control_percent": {
                 "name": "Frequency Ratio Control Percent"
+            },
+            "dhw_disinfection_start_hour": {
+                "name": "DHW Disinfection Start Hour"
+            },
+            "dhw_disinfection_target_temperature": {
+                "name": "DHW Disinfection Target Temperature"
+            },
+            "dhw_disinfection_duration_minutes": {
+                "name": "DHW Disinfection Duration"
+            },
+            "dhw_disinfection_max_hours": {
+                "name": "DHW Disinfection Max Hours"
+            },
+            "dhw_max_operation_time": {
+                "name": "DHW Max Operation Time"
+            }
+        },
+        "select": {
+            "dhw_disinfection_day_of_week": {
+                "name": "DHW Disinfection Day of Week",
+                "state": {
+                    "sunday": "Sunday",
+                    "monday": "Monday",
+                    "tuesday": "Tuesday",
+                    "wednesday": "Wednesday",
+                    "thursday": "Thursday",
+                    "friday": "Friday",
+                    "saturday": "Saturday",
+                    "everyday": "Everyday"
+                }
+            },
+            "pwm_pump_mode": {
+                "name": "PWM Pump Mode",
+                "state": {
+                    "no": "Disabled",
+                    "yes 100 percent": "Enabled",
+                    "yes 70 percent": "Enabled (70%)"
+                }
             }
         }
     }

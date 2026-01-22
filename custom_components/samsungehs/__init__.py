@@ -26,6 +26,7 @@ PLATFORMS: list[Platform] = [
     Platform.WATER_HEATER,
     Platform.SWITCH,
     Platform.NUMBER,
+    Platform.SELECT,
 ]
 
 
@@ -63,9 +64,9 @@ async def async_setup_entry(
         coordinator=coordinator,
     )
 
-    await coordinator.async_config_entry_first_refresh()
-
+    # Setup platforms first to populate a list of messages to retrieve
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
+    await coordinator.async_config_entry_first_refresh()
     entry.async_on_unload(entry.add_update_listener(async_reload_entry))
 
     return True

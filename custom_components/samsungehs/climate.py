@@ -20,13 +20,15 @@ from pysamsungnasa.protocol.enum import (
     OutdoorOperationStatus,
 )
 from pysamsungnasa.protocol.factory.messages.indoor import (
-    InWaterLawTargetTemperature,
     IndoorFlowTemperature,
     InOperationModeMessage,
     InOperationPowerMessage,
     InRoomTemperature,
     InTargetTemperature,
+    InWaterLawTargetTemperature,
     InWaterOutletTargetTemperature,
+    InFsv2091UseThermostat1,
+    InFsv2092UseThermostat2,
 )
 from pysamsungnasa.protocol.factory.messages.outdoor import (
     OutdoorDefrostStatus,
@@ -231,19 +233,15 @@ class SamsungEhsClimate(SamsungEhsEntity, ClimateEntity):
             OutdoorDefrostStatus.MESSAGE_ID, self._device.handle_packet
         )
         # Read initial values
-        await self._device.get_attribute(
-            OutdoorOperationStatusMessage, requires_read=True
-        )
-        await self._device.get_attribute(OutdoorDefrostStatus, requires_read=True)
-        await self._device.get_attribute(InOperationPowerMessage, requires_read=True)
-        await self._device.get_attribute(InOperationModeMessage, requires_read=True)
-        await self._device.get_attribute(InRoomTemperature, requires_read=True)
-        await self._device.get_attribute(IndoorFlowTemperature, requires_read=True)
-        await self._device.get_attribute(InTargetTemperature, requires_read=True)
-        await self._device.get_attribute(
-            InWaterOutletTargetTemperature, requires_read=True
-        )
-        await self._device.get_attribute(
-            InWaterLawTargetTemperature, requires_read=True
-        )
+        self._add_first_run_message(OutdoorOperationStatusMessage)
+        self._add_first_run_message(OutdoorDefrostStatus)
+        self._add_first_run_message(InOperationPowerMessage)
+        self._add_first_run_message(InOperationModeMessage)
+        self._add_first_run_message(InRoomTemperature)
+        self._add_first_run_message(IndoorFlowTemperature)
+        self._add_first_run_message(InTargetTemperature)
+        self._add_first_run_message(InWaterOutletTargetTemperature)
+        self._add_first_run_message(InWaterLawTargetTemperature)
+        self._add_first_run_message(InFsv2091UseThermostat1)
+        self._add_first_run_message(InFsv2092UseThermostat2)
         return await super().async_added_to_hass()

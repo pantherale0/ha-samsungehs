@@ -16,6 +16,7 @@ from pysamsungnasa.protocol.enum import (
     AddressClass,
 )
 from pysamsungnasa.protocol.factory.messages.indoor import (
+    InFsv3041,
     InFsv5051,
     InOutingModeMessage,
     InQuietModeMessage,
@@ -39,6 +40,7 @@ class SamsungEHSSwitchKey(StrEnum):
     OUTING_MODE = "outing_mode"
     QUIET_MODE = "quiet_mode"
     FREQUENCY_RATIO_CONTROL = "frequency_ratio_control"
+    DHW_DISINFECTION = "dhw_disinfection"
 
 
 @dataclass(frozen=True, kw_only=True)
@@ -66,6 +68,11 @@ SWITCHES: tuple[SamsungEHSSwitchEntityDescription, ...] = (
         translation_key=SamsungEHSSwitchKey.FREQUENCY_RATIO_CONTROL,
         message=InFsv5051,
         requires_read=True,
+    ),
+    SamsungEHSSwitchEntityDescription(
+        key=SamsungEHSSwitchKey.DHW_DISINFECTION,
+        translation_key=SamsungEHSSwitchKey.DHW_DISINFECTION,
+        message=InFsv3041,
     ),
 )
 

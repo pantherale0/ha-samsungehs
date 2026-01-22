@@ -170,10 +170,7 @@ class SamsungEhsWaterHeater(SamsungEhsEntity, WaterHeaterEntity):
         """Call when the entity is added to HASS."""
         # Read some attributes by hand on startup to ensure we have the correct state.
         await super().async_added_to_hass()  # Ensure essentials is registered first
-        try:
-            await self._device.get_attribute(DhwTargetTemperature, requires_read=True)
-            await self._device.get_attribute(DhwCurrentTemperature, requires_read=True)
-            await self._device.get_attribute(InDhwOpMode, requires_read=True)
-            await self._device.get_attribute(InDhwWaterHeaterPower, requires_read=True)
-        except TimeoutError:
-            pass  # If it does not respond, we will get it on the next update cycle.
+        self._add_first_run_message(DhwTargetTemperature)
+        self._add_first_run_message(DhwCurrentTemperature)
+        self._add_first_run_message(InDhwOpMode)
+        self._add_first_run_message(InDhwWaterHeaterPower)

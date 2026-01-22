@@ -20,6 +20,7 @@ class SamsungEhsData:
     client: SamsungNasa
     coordinator: SamsungEhsDataUpdateCoordinator
     messages_to_read: dict[str, list[int]] = field(default_factory=dict)
+    first_run_messages: dict[str, list[int]] = field(default_factory=dict)
 
 
 type SamsungEhsConfigEntry = ConfigEntry[SamsungEhsData]

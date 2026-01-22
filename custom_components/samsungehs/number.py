@@ -11,12 +11,17 @@ from homeassistant.components.number import (
     NumberEntity,
     NumberEntityDescription,
 )
-from homeassistant.const import PERCENTAGE
+from homeassistant.const import PERCENTAGE, UnitOfTime, UnitOfTemperature
 from pysamsungnasa.helpers import Address
 from pysamsungnasa.protocol.enum import (
     AddressClass,
 )
 from pysamsungnasa.protocol.factory.messages.indoor import (
+    InFsv3025,
+    InFsv3043,
+    InFsv3044,
+    InFsv3045,
+    InFsv3046,
     InFsv5051,
     InOutdoorCompressorFrequencyRateControlMessage,
 )
@@ -41,6 +46,11 @@ class SamsungEHSNumberKey(StrEnum):
     """Samsung EHS Number Keys."""
 
     FREQUENCY_RATIO_CONTROL_PERCENT = "frequency_ratio_control_percent"
+    DHW_DISINFECTION_START_HOUR = "dhw_disinfection_start_hour"
+    DHW_DISINFECTION_TARGET_TEMPERATURE = "dhw_disinfection_target_temperature"
+    DHW_DISINFECTION_DURATION_MINUTES = "dhw_disinfection_duration_minutes"
+    DHW_DISINFECTION_MAX_HOURS = "dhw_disinfection_max_hours"
+    DHW_MAX_OPERATION_TIME = "dhw_max_operation_time"
 
 
 @dataclass(frozen=True, kw_only=True)
@@ -80,6 +90,76 @@ NUMBERS: tuple[SamsungEHSNumberEntityDescription, ...] = (
         native_unit_of_measurement=PERCENTAGE,
         available_fn=lambda entity: entity.get_attribute(InFsv5051) is not None
         and bool(entity.get_attribute(InFsv5051)),
+    ),
+    SamsungEHSNumberEntityDescription(
+        key=SamsungEHSNumberKey.DHW_DISINFECTION_START_HOUR,
+        message=InFsv3043,
+        write_fn=lambda device, value: device.write_attribute(
+            InFsv3043,
+            value=int(value),
+        ),
+        translation_key=SamsungEHSNumberKey.DHW_DISINFECTION_START_HOUR,
+        requires_read=True,
+        native_step=1.0,
+        native_min_value=0.0,
+        native_max_value=23.0,
+        native_unit_of_measurement=UnitOfTime.HOURS,
+    ),
+    SamsungEHSNumberEntityDescription(
+        key=SamsungEHSNumberKey.DHW_DISINFECTION_TARGET_TEMPERATURE,
+        message=InFsv3044,
+        write_fn=lambda device, value: device.write_attribute(
+            InFsv3044,
+            value=int(value),
+        ),
+        translation_key=SamsungEHSNumberKey.DHW_DISINFECTION_TARGET_TEMPERATURE,
+        requires_read=True,
+        native_step=1.0,
+        native_min_value=40.0,
+        native_max_value=70.0,
+        native_unit_of_measurement=UnitOfTemperature.CELSIUS,
+    ),
+    SamsungEHSNumberEntityDescription(
+        key=SamsungEHSNumberKey.DHW_DISINFECTION_DURATION_MINUTES,
+        message=InFsv3045,
+        write_fn=lambda device, value: device.write_attribute(
+            InFsv3045,
+            value=int(value),
+        ),
+        translation_key=SamsungEHSNumberKey.DHW_DISINFECTION_DURATION_MINUTES,
+        requires_read=True,
+        native_step=1.0,
+        native_min_value=5.0,
+        native_max_value=60.0,
+        native_unit_of_measurement=UnitOfTime.MINUTES,
+    ),
+    SamsungEHSNumberEntityDescription(
+        key=SamsungEHSNumberKey.DHW_DISINFECTION_MAX_HOURS,
+        message=InFsv3046,
+        write_fn=lambda device, value: device.write_attribute(
+            InFsv3046,
+            value=int(value),
+        ),
+        translation_key=SamsungEHSNumberKey.DHW_DISINFECTION_MAX_HOURS,
+        requires_read=True,
+        native_step=1.0,
+        native_min_value=1.0,
+        native_max_value=24.0,
+        native_unit_of_measurement=UnitOfTime.HOURS,
+    ),
+    SamsungEHSNumberEntityDescription(
+        key=SamsungEHSNumberKey.DHW_MAX_OPERATION_TIME,
+        message=InFsv3025,
+        write_fn=lambda device, value: device.write_attribute(
+            InFsv3025,
+            value=int(value),
+        ),
+        translation_key=SamsungEHSNumberKey.DHW_MAX_OPERATION_TIME,
+        requires_read=True,
+        native_step=1.0,
+        native_min_value=5.0,
+        native_max_value=95.0,
+        native_unit_of_measurement=UnitOfTime.MINUTES,
     ),
 )
 

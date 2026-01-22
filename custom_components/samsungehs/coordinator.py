@@ -42,6 +42,16 @@ class SamsungEhsDataUpdateCoordinator(DataUpdateCoordinator):
                     await device.get_attribute(
                         DbCodeMiComMainMessage, requires_read=True
                     )
+                # Add all messages that need to be read on first run
+                for (
+                    device_address,
+                    messages,
+                ) in self.config_entry.runtime_data.first_run_messages.items():
+                    for i in range(0, len(messages), 10):
+                        batch = messages[i : i + 10]
+                        await self.config_entry.runtime_data.client.client.nasa_read(
+                            batch, device_address
+                        )
             self._first_refresh = False
 
         # Messages can only be read in batches of 10

@@ -104,32 +104,32 @@ class SamsungEhsEntity(CoordinatorEntity[SamsungEhsDataUpdateCoordinator]):
             self._message.MESSAGE_ID if message is None else message.MESSAGE_ID
         )
         assert message_number is not None  # noqa: S101
-        if self._device is None or message_number is None:
+        if message_number is None:
             return None
         attribute = self._device.attributes.get(message_number)
         if attribute is None:
             return None
         return attribute.VALUE
 
+    def _add_first_run_message(self, message: type[BaseMessage]) -> None:
+        """Add a message to be read on first run."""
+        if self._device_address is not None and message.MESSAGE_ID is not None:
+            self.coordinator.config_entry.runtime_data.first_run_messages.setdefault(
+                self._device_address, []
+            ).append(message.MESSAGE_ID)
+
     async def async_added_to_hass(self) -> None:
         """Call when the entity is added to HASS."""
         await super().async_added_to_hass()
-        if (
-            self._message is not None
-            and self._device_address is not None
-            and self._message.MESSAGE_ID is not None
-        ):
-            await self.coordinator.config_entry.runtime_data.client.client.nasa_read(
-                msgs=[self._message.MESSAGE_ID], destination=self._device_address
-            )
-        if self._device is None:
-            return
+        # Even if requires read is false, we add the message anyway
+        # This ensures we have at least attempted to request the latest value
+        # Some messages are only sent every so often by the device
+        if self._message:
+            self._add_first_run_message(self._message)
 
         self._device.add_device_callback(self.async_schedule_update_ha_state)
 
     async def async_will_remove_from_hass(self) -> None:
         """Call when the entity is about to be removed from HASS."""
         await super().async_will_remove_from_hass()
-        if self._device is None:
-            return
         self._device.remove_device_callback(self.async_schedule_update_ha_state)
