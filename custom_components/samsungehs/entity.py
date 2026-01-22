@@ -53,6 +53,16 @@ class SamsungEhsEntity(CoordinatorEntity[SamsungEhsDataUpdateCoordinator]):
             ).append(self._message.MESSAGE_ID)
 
     @property
+    def available(self) -> bool:
+        """Return if entity is available."""
+        return (
+            super().available
+            and self._device_address
+            in self.coordinator.config_entry.runtime_data.client.devices
+            and self.coordinator.config_entry.runtime_data.client.client.is_connected
+        )
+
+    @property
     def device_info(self) -> DeviceInfo:
         """Return the device info."""
         model = self.get_attribute(ProductModelName)
