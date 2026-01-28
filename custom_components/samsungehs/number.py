@@ -17,6 +17,8 @@ from pysamsungnasa.protocol.enum import (
     AddressClass,
 )
 from pysamsungnasa.protocol.factory.messages.indoor import (
+    InFsv2021WaterOutTempWL1HeatingMax,
+    InFsv2022WaterOutTempWL1HeatingMin,
     InFsv3025,
     InFsv3043,
     InFsv3044,
@@ -51,6 +53,8 @@ class SamsungEHSNumberKey(StrEnum):
     DHW_DISINFECTION_DURATION_MINUTES = "dhw_disinfection_duration_minutes"
     DHW_DISINFECTION_MAX_HOURS = "dhw_disinfection_max_hours"
     DHW_MAX_OPERATION_TIME = "dhw_max_operation_time"
+    FSV2021_WATER_OUT_TEMP_WL1_HEATING_MAX = "fsv2021_water_out_temp_wl1_heating_max"
+    FSV2022_WATER_OUT_TEMP_WL1_HEATING_MIN = "fsv2022_water_out_temp_wl1_heating_min"
 
 
 @dataclass(frozen=True, kw_only=True)
@@ -160,6 +164,34 @@ NUMBERS: tuple[SamsungEHSNumberEntityDescription, ...] = (
         native_min_value=5.0,
         native_max_value=95.0,
         native_unit_of_measurement=UnitOfTime.MINUTES,
+    ),
+    SamsungEHSNumberEntityDescription(
+        key=SamsungEHSNumberKey.FSV2021_WATER_OUT_TEMP_WL1_HEATING_MAX,
+        message=InFsv2021WaterOutTempWL1HeatingMax,
+        write_fn=lambda device, value: device.write_attribute(
+            InFsv2021WaterOutTempWL1HeatingMax,
+            value=int(value),
+        ),
+        translation_key=SamsungEHSNumberKey.FSV2021_WATER_OUT_TEMP_WL1_HEATING_MAX,
+        requires_read=True,
+        native_step=1.0,
+        native_min_value=17.0,
+        native_max_value=65.0,
+        native_unit_of_measurement=UnitOfTemperature.CELSIUS,
+    ),
+    SamsungEHSNumberEntityDescription(
+        key=SamsungEHSNumberKey.FSV2022_WATER_OUT_TEMP_WL1_HEATING_MIN,
+        message=InFsv2022WaterOutTempWL1HeatingMin,
+        write_fn=lambda device, value: device.write_attribute(
+            InFsv2022WaterOutTempWL1HeatingMin,
+            value=int(value),
+        ),
+        translation_key=SamsungEHSNumberKey.FSV2022_WATER_OUT_TEMP_WL1_HEATING_MIN,
+        requires_read=True,
+        native_step=1.0,
+        native_min_value=17.0,
+        native_max_value=65.0,
+        native_unit_of_measurement=UnitOfTemperature.CELSIUS,
     ),
 )
 

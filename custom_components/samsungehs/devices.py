@@ -1,7 +1,7 @@
 """Handlers to register and manage Samsung EHS devices in device registry."""
 
-from homeassistant.core import HomeAssistant
 from homeassistant.config_entries import ConfigSubentry
+from homeassistant.core import HomeAssistant
 from pysamsungnasa.device import NasaDevice
 
 from .data import SamsungEhsConfigEntry

@@ -200,6 +200,12 @@
             },
             "dhw_max_operation_time": {
                 "name": "DHW Max Operation Time"
+            },
+            "fsv2021_water_out_temp_wl1_heating_max": {
+                "name": "FSV2021 Water Out Temp WL1 Heating Max"
+            },
+            "fsv2022_water_out_temp_wl1_heating_min": {
+                "name": "FSV2022 Water Out Temp WL1 Heating Min"
             }
         },
         "select": {
