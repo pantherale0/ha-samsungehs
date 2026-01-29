@@ -10,6 +10,7 @@ from typing import TYPE_CHECKING
 from homeassistant.components.number import (
     NumberEntity,
     NumberEntityDescription,
+    NumberMode,
 )
 from homeassistant.const import PERCENTAGE, UnitOfTime, UnitOfTemperature
 from pysamsungnasa.helpers import Address
@@ -236,6 +237,7 @@ class SamsungEHSNumber(SamsungEhsEntity, NumberEntity):
             subentry=subentry,
         )
         self.entity_description = description
+        self._attr_mode = NumberMode.BOX
 
     @property
     def available(self) -> bool:
