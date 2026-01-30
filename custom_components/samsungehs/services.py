@@ -2,6 +2,7 @@
 
 import logging
 from enum import StrEnum
+from typing import TYPE_CHECKING
 
 import voluptuous as vol
 from homeassistant.const import ATTR_DEVICE_ID
@@ -13,7 +14,9 @@ from pysamsungnasa.protocol.factory.messages import MESSAGE_PARSERS
 from pysamsungnasa.protocol.factory.types import BaseMessage, RawMessage
 
 from .const import DOMAIN
-from .data import SamsungEhsConfigEntry
+
+if TYPE_CHECKING:
+    from .data import SamsungEhsConfigEntry
 
 _LOGGER = logging.getLogger(__name__)
 
