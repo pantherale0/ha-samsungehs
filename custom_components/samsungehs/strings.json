@@ -265,5 +265,16 @@
                 }
             }
         }
+    },
+    "exceptions": {
+        "missing_device_id": {
+            "message": "Device ID is required"
+        },
+        "device_not_found": {
+            "message": "Device '{device_id}' not found"
+        },
+        "invalid_device": {
+            "message": "Invalid device '{device_id}' for attribute {attribute}"
+        }
     }
 }
