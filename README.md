@@ -1,8 +1,8 @@
 # Samsung EHS Home Assistant Integration
 
-> **⚠️ Technical Proof of Concept**
+> **⚠️ Stability Note**
 >
-> This is a technical proof of concept (POC) integration provided as-is for development and testing purposes. Use at your own risk and expect potential breaking changes as the project evolves.
+> This integration is stable and ready for use. However, it may not cover all Samsung EHS device models and configurations. Some features or device compatibility may vary depending on your specific setup.
 >
 > **Technology Readiness Level**: TRL 7 (System prototype demonstration in operational environment)
 
@@ -30,6 +30,9 @@ This integration provides support for the following Samsung EHS platforms:
 - **Water Heater** - Manage the domestic hot water (DHW) system with multiple operation modes (Eco, Heat Pump, Electric, Performance)
 - **Sensor** - Track various system parameters including temperatures, energy consumption, and operational status
 - **Binary Sensor** - Monitor connectivity and device availability
+- **Switch** - Control operational features like Quiet Mode and DHW Disinfection
+- **Number** - Adjust configuration parameters like DHW disinfection schedule and compressor settings
+- **Select** - Choose from predefined options like DHW disinfection day of week and pump modes
 
 ## Water Heater Operation Modes
 
@@ -92,6 +95,52 @@ The integration monitors several parameters to determine the current action:
 
 This information is exposed as the `hvac_action` attribute in Home Assistant and can be used in automations to trigger actions based on what the system is actually doing, not just what mode it's in.
 
+## Services
+
+This integration provides the following services for advanced control and monitoring:
+
+### Read Attribute
+
+Read an attribute value from your Samsung EHS device.
+
+**Service**: `samsungehs.read_attribute`
+
+**Fields**:
+- `device_id` (required): The Samsung EHS device to read from
+- `attribute` (required): The attribute ID in format `0xXXXX` (e.g., `0x0001`)
+
+**Example**:
+```yaml
+service: samsungehs.read_attribute
+data:
+   device_id: abc123def456
+   attribute: "0x0001"
+```
+
+**Attribute IDs**: See the [pysamsungnasa message factory documentation](https://pantherale0.github.io/pysamsungnasa/protocol/message-factory/) for available attribute IDs.
+
+### Write Attribute
+
+Write a value to an attribute on your Samsung EHS device.
+
+**Service**: `samsungehs.write_attribute`
+
+**Fields**:
+- `device_id` (required): The Samsung EHS device to write to
+- `attribute` (required): The attribute ID in format `0xXXXX` (e.g., `0x0001`)
+- `value` (required): The value to write
+
+**Example**:
+```yaml
+service: samsungehs.write_attribute
+data:
+   device_id: abc123def456
+   attribute: "0x0001"
+   value: 42
+```
+
+**Attribute IDs**: See the [pysamsungnasa message factory documentation](https://pantherale0.github.io/pysamsungnasa/protocol/message-factory/) for available attribute IDs and their expected value formats.
+
 ## Hardware Configuration
 
 Samsung EHS devices communicate via the NASА protocol over RS485/serial connection. Since most systems won't have direct serial access, you'll need to set up a UART bridge to connect your Home Assistant instance to the Samsung EHS device.
@@ -101,9 +150,9 @@ Samsung EHS devices communicate via the NASА protocol over RS485/serial connect
 To establish communication, you will need:
 
 1. **A device with RS485 interface** - Examples:
-   - M5Stack with [RS485 Base](https://www.aliexpress.com/item/1005005912210853.html)
-   - Any ESP32-based device with RS485 module
-   - Raspberry Pi with RS485 HAT
+    - M5Stack with [RS485 Base](https://www.aliexpress.com/item/1005005912210853.html)
+    - Any ESP32-based device with RS485 module
+    - Raspberry Pi with RS485 HAT
 
 2. **Network connectivity** - The bridge device must be on the same network as Home Assistant
 
@@ -112,33 +161,33 @@ To establish communication, you will need:
 The recommended approach is to use [ESPHome](https://esphome.io/) with the [esphome-stream-server](https://github.com/oxan/esphome-stream-server) component:
 
 1. **Flash ESPHome to your bridge device** (e.g., M5Stack):
-   - Install [ESPHome](https://esphome.io/guides/installing_esphome.html)
-   - Create a new device configuration with RS485 support
-   - Use the esphome-stream-server component for TCP bridging
+    - Install [ESPHome](https://esphome.io/guides/installing_esphome.html)
+    - Create a new device configuration with RS485 support
+    - Use the esphome-stream-server component for TCP bridging
 
 2. **Example ESPHome Configuration**:
-   ```yaml
-   esphome:
-     name: samsung-ehs-bridge
+    ```yaml
+    esphome:
+       name: samsung-ehs-bridge
 
-   uart:
-     id: uart_rs485
-     tx_pin: GPIO17
-     rx_pin: GPIO16
-     baud_rate: 9600
+    uart:
+       id: uart_rs485
+       tx_pin: GPIO17
+       rx_pin: GPIO16
+       baud_rate: 9600
 
-   external_components:
-     - source: github://oxan/esphome-stream-server
+    external_components:
+       - source: github://oxan/esphome-stream-server
 
-   stream_server:
-     uart_id: uart_rs485
-     port: 8000
-   ```
+    stream_server:
+       uart_id: uart_rs485
+       port: 8000
+    ```
 
 3. **Connect the RS485 module**:
-   - Wire the RS485 module to your ESP device according to your specific hardware pinout
-   - Connect the RS485 A/B lines to your Samsung EHS device
-   - Ensure proper termination resistors if needed for your installation
+    - Wire the RS485 module to your ESP device according to your specific hardware pinout
+    - Connect the RS485 A/B lines to your Samsung EHS device
+    - Ensure proper termination resistors if needed for your installation
 
 4. **Note the device's IP address** - This will be used in the Home Assistant configuration
 
@@ -208,8 +257,8 @@ The integration uses the configuration flow for easy setup:
 1. Go to Settings → Devices & Services → Create Integration
 2. Search for "Samsung EHS"
 3. Enter the following information:
-   - **Host**: The IP address or hostname of your Samsung EHS device
-   - **Port**: The port number (typically 8000)
+    - **Host**: The IP address or hostname of your RS485 bridge / ethernet adapter
+    - **Port**: The port number to access the bridge
 
 The integration will automatically discover and set up all connected devices and their entities.
 
@@ -220,6 +269,7 @@ This integration supports Samsung EHS systems that communicate via the NASА pro
 - Samsung heat pumps (ASHP, WSHP models)
 - Samsung air-to-water heat pumps
 - Samsung heat recovery ventilation systems with integrated heat pump functionality
+- This integration may support a variety of Samsung AC units, however as I don't have any packet dumps from these, I cannot implmenent the required functions.
 
 **Note**: Compatibility depends on your specific device model and firmware version. Please refer to the [issue tracker](https://github.com/pantherale0/ha-samsungehs/issues) if you encounter compatibility issues.
 
