@@ -124,7 +124,8 @@ async def async_read_attribute_service(call: ServiceCall) -> dict:
 
     attribute = _get_attribute_class_by_id(attribute_to_read)
     message = await config_entry.runtime_data.client.devices[address].get_attribute(
-        attribute
+        attribute,
+        requires_read=True,
     )
     _LOGGER.debug(
         "Read attribute '%s' from device '%s': %s",
