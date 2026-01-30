@@ -231,5 +231,39 @@
                 }
             }
         }
+    },
+    "services": {
+        "read_attribute": {
+            "name": "Read Attribute",
+            "description": "Read an attribute from a Samsung EHS device",
+            "fields": {
+                "device_id": {
+                    "name": "Device",
+                    "description": "The Samsung EHS device to read from"
+                },
+                "attribute": {
+                    "name": "Attribute",
+                    "description": "The attribute ID in format 0xXXXX"
+                }
+            }
+        },
+        "write_attribute": {
+            "name": "Write Attribute",
+            "description": "Write a value to an attribute on a Samsung EHS device",
+            "fields": {
+                "device_id": {
+                    "name": "Device",
+                    "description": "The Samsung EHS device to write to"
+                },
+                "attribute": {
+                    "name": "Attribute",
+                    "description": "The attribute ID in format 0xXXXX"
+                },
+                "value": {
+                    "name": "Value",
+                    "description": "The value to write"
+                }
+            }
+        }
     }
 }

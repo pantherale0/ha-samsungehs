@@ -1,0 +1,27 @@
+read_attribute:
+  fields:
+    device_id:
+      required: true
+      selector:
+        device:
+          integration: samsungehs
+    attribute:
+      required: true
+      example: "0x0001"
+
+write_attribute:
+  fields:
+    device_id:
+      required: true
+      selector:
+        device:
+          integration: samsungehs
+    attribute:
+      required: true
+      example: "0x0001"
+    value:
+      required: true
+      selector:
+        number:
+          min: 0
+          step: 1

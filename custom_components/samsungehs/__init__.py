@@ -12,6 +12,8 @@ from typing import TYPE_CHECKING
 
 from homeassistant.const import CONF_HOST, CONF_PORT, Platform
 from homeassistant.exceptions import ConfigEntryNotReady
+from homeassistant.helpers import config_validation as cv
+from homeassistant.helpers.typing import ConfigType
 from pysamsungnasa import SamsungNasa
 from pysamsungnasa.protocol.factory.messages.basic import (
     DbCodeMiComMainMessage,
@@ -23,6 +25,7 @@ from .const import DOMAIN, LOGGER
 from .coordinator import SamsungEhsDataUpdateCoordinator
 from .data import SamsungEhsConfigEntry, SamsungEhsData
 from .devices import async_trigger_discovered_device
+from .services import async_register_services
 
 if TYPE_CHECKING:
     from homeassistant.core import HomeAssistant
@@ -37,6 +40,14 @@ PLATFORMS: list[Platform] = [
     Platform.NUMBER,
     Platform.SELECT,
 ]
+
+PLATFORM_SCHEMA = cv.config_entry_only_config_schema(DOMAIN)
+
+
+async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
+    """Set up the Samsung EHS component."""
+    async_register_services(hass)
+    return True
 
 
 async def async_setup_entry(
