@@ -175,10 +175,10 @@ class SamsungEhsClimate(SamsungEhsEntity, ClimateEntity):
             == OutdoorOperationStatus.OP_SAFETY
         ):
             return HVACAction.PREHEATING
-        if (
-            self.get_attribute(OutdoorDefrostStatus)
-            != OutdoorIndoorDefrostStep.NO_DEFROST_OPERATION
-        ):
+        if self.get_attribute(OutdoorOperationStatusMessage) in [
+            OutdoorOperationStatus.OP_DEICE,
+            OutdoorOperationStatus.OP_NONSTOP_DEICE,
+        ]:
             return HVACAction.DEFROSTING
         if self.get_attribute(InOperationPowerMessage) == InOperationPower.OFF:
             return HVACAction.OFF
@@ -231,6 +231,10 @@ class SamsungEhsClimate(SamsungEhsEntity, ClimateEntity):
         )
         self.coordinator.config_entry.runtime_data.client.parser.add_packet_listener(
             OutdoorDefrostStatus.MESSAGE_ID, self._device.handle_packet
+        )
+        self.coordinator.config_entry.runtime_data.client.parser.add_packet_listener(
+            OutdoorOperationStatusMessage.MESSAGE_ID,
+            self.async_schedule_update_ha_state,
         )
         # Read initial values
         self._add_first_run_message(OutdoorOperationStatusMessage)
