@@ -69,14 +69,14 @@ OUTDOOR_ENTITY_DESCRIPTIONS = (
         messages_expected_value=OutdoorCompressorLoad.ON,
         requires_read=True,
     ),
-    SamsungEhsBinarySensorEntityDescription(
-        key=SamsungEhsBinarySensorKey.CIRCULATION_PUMP_RUNNING,
-        translation_key=SamsungEhsBinarySensorKey.CIRCULATION_PUMP_RUNNING,
-        device_class=BinarySensorDeviceClass.RUNNING,
-        messages_expected_value=OutdoorPumpOutLoad.ON,
-        message=outdoor.OutdoorPumpOutValveStatus,
-        requires_read=True,
-    ),
+    # SamsungEhsBinarySensorEntityDescription(
+    #     key=SamsungEhsBinarySensorKey.CIRCULATION_PUMP_RUNNING,
+    #     translation_key=SamsungEhsBinarySensorKey.CIRCULATION_PUMP_RUNNING,
+    #     device_class=BinarySensorDeviceClass.RUNNING,
+    #     messages_expected_value=OutdoorPumpOutLoad.ON,
+    #     message=outdoor.OutdoorPumpOutValveStatus,
+    #     requires_read=True,
+    # ),
     SamsungEhsBinarySensorEntityDescription(
         key=SamsungEhsBinarySensorKey.HP_RUNNING,
         translation_key=SamsungEhsBinarySensorKey.HP_RUNNING,

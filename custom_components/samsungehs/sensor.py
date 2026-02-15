@@ -22,7 +22,7 @@ from homeassistant.const import (
 )
 from pysamsungnasa.helpers import Address
 from pysamsungnasa.protocol.enum import AddressClass
-from pysamsungnasa.protocol.factory.messages import indoor, outdoor
+from pysamsungnasa.protocol.factory.messages import basic, indoor, outdoor
 
 from .entity import SamsungEhsEntity
 
@@ -45,6 +45,7 @@ class SamsungEhsSensorKey(StrEnum):
     # All devices
     LAST_PACKET_RECEIVED = "last_packet_received"
     AVAILABLE_ATTRIBUTES = "available_attributes"
+    ERROR_CODE = "error_code"
 
     # Outdoor unit only
     OUTDOOR_TEMPERATURE = "outdoor_temperature"
@@ -99,6 +100,12 @@ ALL_ENTITY_DESCRIPTIONS: tuple[SamsungEhsSensorEntityDescription, ...] = (
         value_fn=lambda device: len(device.attributes),
         state_class=SensorStateClass.MEASUREMENT,
     ),
+    SamsungEhsSensorEntityDescription(
+        key=SamsungEhsSensorKey.ERROR_CODE,
+        translation_key=SamsungEhsSensorKey.ERROR_CODE,
+        entity_category=EntityCategory.DIAGNOSTIC,
+        message=basic.CurrentErrorCode,
+    ),
 )
 
 OUTDOOR_ENTITY_DESCRIPTIONS: tuple[SamsungEhsSensorEntityDescription, ...] = (
@@ -114,22 +121,25 @@ OUTDOOR_ENTITY_DESCRIPTIONS: tuple[SamsungEhsSensorEntityDescription, ...] = (
         key=SamsungEhsSensorKey.OUTDOOR_COP,
         translation_key=SamsungEhsSensorKey.OUTDOOR_COP,
         value_fn=lambda device: (
-            indoor.TotalEnergyGenerated.MESSAGE_ID in device.attributes
-            and outdoor.OutdoorCumulativeEnergy.MESSAGE_ID in device.attributes
-            and (
-                consumption := device.attributes[
-                    outdoor.OutdoorCumulativeEnergy.MESSAGE_ID
-                ].VALUE
+            (
+                indoor.TotalEnergyGenerated.MESSAGE_ID in device.attributes
+                and outdoor.OutdoorCumulativeEnergy.MESSAGE_ID in device.attributes
+                and (
+                    consumption := device.attributes[
+                        outdoor.OutdoorCumulativeEnergy.MESSAGE_ID
+                    ].VALUE
+                )
+                != 0
+                and (
+                    generation := device.attributes[
+                        indoor.TotalEnergyGenerated.MESSAGE_ID
+                    ].VALUE
+                )
+                is not None
+                and generation / consumption
             )
-            != 0
-            and (
-                generation := device.attributes[
-                    indoor.TotalEnergyGenerated.MESSAGE_ID
-                ].VALUE
-            ) is not None
-            and generation / consumption
-        )
-        or None,
+            or None
+        ),
         state_class=SensorStateClass.MEASUREMENT,
     ),
     SamsungEhsSensorEntityDescription(

@@ -26,6 +26,43 @@
     },
     "entity": {
         "sensor": {
+            "error_code": {
+                "name": "Current Error",
+                "state": {
+                    "hydro_outdoor_comm_error": "Hydro Outdoor Comm Error",
+                    "room_temp_sensor_zone2_error": "Room Temp Sensor Zone 2 Error",
+                    "room_temp_sensor_zone1_error": "Room Temp Sensor Zone 1 Error",
+                    "eva_inlet_temp_sensor_error": "EVA Inlet Temp Sensor Error",
+                    "eva_outlet_temp_sensor_error": "EVA Outlet Temp Sensor Error",
+                    "eeprom_error": "EEPROM Error",
+                    "thermal_fuse_error": "Thermal Fuse Error",
+                    "hydro_wired_remote_comm_error": "Hydro Wired Remote Comm Error",
+                    "wired_remote_temp_sensor_error": "Wired Remote Temp Sensor Error",
+                    "wired_remote_eeprom_error": "Wired Remote EEPROM Error",
+                    "water_tank_sensor_error": "Water Tank Sensor Error",
+                    "water_outlet_temp_zone1_error": "Water Outlet Temp Zone 1 Error",
+                    "water_outlet_temp_zone2_error": "Water Outlet Temp Zone 2 Error",
+                    "water_inlet_temp_sensor_error": "Water Inlet Temp Sensor Error",
+                    "water_outlet_temp_sensor_error": "Water Outlet Temp Sensor Error",
+                    "backup_heater_temp_sensor_error": "Backup Heater Temp Sensor Error",
+                    "dhw_tank_temp_sensor_error": "DHW Tank Temp Sensor Error",
+                    "refrigerant_inlet_temp_sensor_error": "Refrigerant Inlet Temp Sensor Error",
+                    "pipe_rupture_protection_error": "Pipe Rupture Protection Error",
+                    "freeze_prevention_error_recoverable": "Freeze Prevention Error (Recoverable)",
+                    "freeze_prevention_error_fatal": "Freeze Prevention Error (Fatal)",
+                    "water_outlet_sensor_detached": "Water Outlet Sensor Detached",
+                    "flow_switch_error": "Flow Switch Error",
+                    "flow_rate_error": "Flow Rate Error",
+                    "flow_switch_fatal_error": "Flow Switch Fatal Error",
+                    "thermostat_connection_error": "Thermostat Connection Error",
+                    "dc_fan_error": "DC Fan Error",
+                    "mixing_valve_sensor_error": "Mixing Valve Sensor Error",
+                    "water_tank_config_error": "Water Tank Config Error",
+                    "disinfection_temp_error": "Disinfection Temp Error",
+                    "fsv_sd_card_error": "FSV SD Card Error",
+                    "water_pressure_sensor_error": "Water Pressure Sensor Error"
+                }
+            },
             "last_packet_received": {
                 "name": "Last Packet Received"
             },
