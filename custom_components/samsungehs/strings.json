@@ -246,6 +246,42 @@
             }
         },
         "select": {
+            "water_law_type_heating": {
+                "name": "Water Law Type Heating",
+                "state": {
+                    "floor": "Floor Heating (UFH)",
+                    "fcu": "Fan Coil Unit (FCU) Heating"
+                }
+            },
+            "use_thermostat_zone_1": {
+                "name": "Use Thermostat Zone 1",
+                "state": {
+                    "no": "Not Used",
+                    "value_1": "On/Off by Thermostat Only",
+                    "value_2": "Water Pump 1 (Off when compressor off)",
+                    "value_3": "Water Pump 2 (On while thermostat active)",
+                    "value_4": "Water Pump 3 (7min off/3min on cycle)"
+                }
+            },
+            "use_thermostat_zone_2": {
+                "name": "Use Thermostat Zone 2",
+                "state": {
+                    "no": "Not Used",
+                    "value_1": "On/Off by Thermostat Only",
+                    "value_2": "Water Pump 1 (Off when compressor off)",
+                    "value_3": "Water Pump 2 (On while thermostat active)",
+                    "value_4": "Water Pump 3 (7min off/3min on cycle)"
+                }
+            },
+            "remote_controller_room_temp_control": {
+                "name": "Remote Controller Room Temp Control",
+                "state": {
+                    "value_1": "Room Temp Only (On/Off)",
+                    "value_2": "Room Temp ON/OFF or WL Interlink ON/OFF (Pump1)",
+                    "value_3": "Room Temp ON/OFF or WL Interlink ON/OFF (Pump2)",
+                    "value_4": "Room Temp ON/OFF or WL Interlink ON/OFF (Pump3)"
+                }
+            },
             "dhw_disinfection_day_of_week": {
                 "name": "DHW Disinfection Day of Week",
                 "state": {

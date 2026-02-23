@@ -12,12 +12,23 @@ from pysamsungnasa.helpers import Address
 from pysamsungnasa.protocol.enum import (
     AddressClass,
     InFsv3042DayOfWeek,
+    InUseThermostat,
     SamsungEnum,
+)
+from pysamsungnasa.protocol.enum import (
+    InFsv2041WaterLawTypeHeating as InFsv2041WaterLawTypeHeatingEnum,
+)
+from pysamsungnasa.protocol.enum import (
+    InFsv2093 as InFsv2093Enum,
 )
 from pysamsungnasa.protocol.enum import (
     InFsv4051 as InFsv4051Enum,
 )
 from pysamsungnasa.protocol.factory.messages.indoor import (
+    InFsv2041WaterLawTypeHeating,
+    InFsv2091UseThermostat1,
+    InFsv2092UseThermostat2,
+    InFsv2093,
     InFsv3042,
     InFsv4051,
 )
@@ -38,6 +49,10 @@ if TYPE_CHECKING:
 class SamsungEHSSelectKey(StrEnum):
     """Samsung EHS Select Keys."""
 
+    USE_THERMOSTAT_ZONE_1 = "use_thermostat_zone_1"
+    USE_THERMOSTAT_ZONE_2 = "use_thermostat_zone_2"
+    WATER_LAW_TYPE_HEATING = "water_law_type_heating"
+    REMOTE_CONTROLLER_ROOM_TEMP_CONTROL = "remote_controller_room_temp_control"
     DHW_DISINFECTION_DAY_OF_WEEK = "dhw_disinfection_day_of_week"
     PWM_PUMP_MODE = "pwm_pump_mode"
     DHW_SUPPLY_RATIO = "dhw_supply_ratio"
@@ -53,6 +68,30 @@ class SamsungEHSSelectEntityDescription(SelectEntityDescription):
 
 
 SELECTS: tuple[SamsungEHSSelectEntityDescription, ...] = (
+    SamsungEHSSelectEntityDescription(
+        key=SamsungEHSSelectKey.WATER_LAW_TYPE_HEATING,
+        translation_key=SamsungEHSSelectKey.WATER_LAW_TYPE_HEATING,
+        message=InFsv2041WaterLawTypeHeating,
+        options=InFsv2041WaterLawTypeHeatingEnum,
+    ),
+    SamsungEHSSelectEntityDescription(
+        key=SamsungEHSSelectKey.USE_THERMOSTAT_ZONE_1,
+        translation_key=SamsungEHSSelectKey.USE_THERMOSTAT_ZONE_1,
+        message=InFsv2091UseThermostat1,
+        options=InUseThermostat,
+    ),
+    SamsungEHSSelectEntityDescription(
+        key=SamsungEHSSelectKey.USE_THERMOSTAT_ZONE_2,
+        translation_key=SamsungEHSSelectKey.USE_THERMOSTAT_ZONE_2,
+        message=InFsv2092UseThermostat2,
+        options=InUseThermostat,
+    ),
+    SamsungEHSSelectEntityDescription(
+        key=SamsungEHSSelectKey.REMOTE_CONTROLLER_ROOM_TEMP_CONTROL,
+        translation_key=SamsungEHSSelectKey.REMOTE_CONTROLLER_ROOM_TEMP_CONTROL,
+        message=InFsv2093,
+        options=InFsv2093Enum,
+    ),
     SamsungEHSSelectEntityDescription(
         key=SamsungEHSSelectKey.DHW_DISINFECTION_DAY_OF_WEEK,
         translation_key=SamsungEHSSelectKey.DHW_DISINFECTION_DAY_OF_WEEK,
