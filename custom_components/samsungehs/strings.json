@@ -256,30 +256,30 @@
             "use_thermostat_zone_1": {
                 "name": "Use Thermostat Zone 1",
                 "state": {
-                    "no": "Not Used",
-                    "value 1": "On/Off by Thermostat Only",
-                    "value 2": "Water Pump 1 (Off when compressor off)",
-                    "value 3": "Water Pump 2 (On while thermostat active)",
-                    "value 4": "Water Pump 3 (7min off/3min on cycle)"
+                    "not used": "Not Used",
+                    "thermostat only": "On/Off by Thermostat Only",
+                    "water pump 1": "Water Pump 1 (Off when compressor off)",
+                    "water pump 2": "Water Pump 2 (On while thermostat active)",
+                    "water pump 3": "Water Pump 3 (7min off/3min on cycle)"
                 }
             },
             "use_thermostat_zone_2": {
                 "name": "Use Thermostat Zone 2",
                 "state": {
-                    "no": "Not Used",
-                    "value 1": "On/Off by Thermostat Only",
-                    "value 2": "Water Pump 1 (Off when compressor off)",
-                    "value 3": "Water Pump 2 (On while thermostat active)",
-                    "value 4": "Water Pump 3 (7min off/3min on cycle)"
+                    "not used": "Not Used",
+                    "thermostat only": "On/Off by Thermostat Only",
+                    "water pump 1": "Water Pump 1 (Off when compressor off)",
+                    "water pump 2": "Water Pump 2 (On while thermostat active)",
+                    "water pump 3": "Water Pump 3 (7min off/3min on cycle)"
                 }
             },
             "remote_controller_room_temp_control": {
                 "name": "Remote Controller Room Temp Control",
                 "state": {
-                    "value 1": "Room Temp Only (On/Off)",
-                    "value 2": "Room Temp ON/OFF or WL Interlink ON/OFF (Pump1)",
-                    "value 3": "Room Temp ON/OFF or WL Interlink ON/OFF (Pump2)",
-                    "value 4": "Room Temp ON/OFF or WL Interlink ON/OFF (Pump3)"
+                    "room temp only": "Room Temp Only (On/Off)",
+                    "wl interlink pump1": "Room Temp ON/OFF or WL Interlink ON/OFF (Pump1)",
+                    "wl interlink pump2": "Room Temp ON/OFF or WL Interlink ON/OFF (Pump2)",
+                    "wl interlink pump3": "Room Temp ON/OFF or WL Interlink ON/OFF (Pump3)"
                 }
             },
             "dhw_disinfection_day_of_week": {

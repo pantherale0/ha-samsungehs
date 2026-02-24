@@ -223,6 +223,10 @@ class SamsungEhsClimate(SamsungEhsEntity, ClimateEntity):
             InOperationPowerMessage, InOperationPower.ON_STATE_1
         )
 
+    def _handle_packet(self, *_args: Any, **__kwargs: Any) -> None:
+        """Handle incoming packets."""
+        self.async_schedule_update_ha_state()
+
     async def async_added_to_hass(self) -> None:
         """Call when the entity is added to HASS."""
         # We need to add a subscription for the outdoor operation status to determine hvac_action  # noqa: E501
@@ -234,7 +238,7 @@ class SamsungEhsClimate(SamsungEhsEntity, ClimateEntity):
         )
         self.coordinator.config_entry.runtime_data.client.parser.add_packet_listener(
             OutdoorOperationStatusMessage.MESSAGE_ID,
-            self.async_schedule_update_ha_state,
+            self._handle_packet,
         )
         # Read initial values
         self._add_first_run_message(OutdoorOperationStatusMessage)
