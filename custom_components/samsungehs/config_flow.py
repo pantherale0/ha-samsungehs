@@ -2,7 +2,7 @@
 
 import voluptuous as vol
 from homeassistant import config_entries
-from homeassistant.const import CONF_HOST, CONF_PORT
+from homeassistant.const import CONF_DEVICE
 from homeassistant.core import callback
 from homeassistant.helpers import selector
 
@@ -11,20 +11,8 @@ from .const import DOMAIN
 MAIN_STEP_USER = vol.Schema(
     {
         vol.Required(
-            CONF_HOST,
-        ): selector.TextSelector(
-            selector.TextSelectorConfig(
-                type=selector.TextSelectorType.TEXT,
-            ),
-        ),
-        vol.Required(CONF_PORT): selector.NumberSelector(
-            selector.NumberSelectorConfig(
-                min=1,
-                max=65535,
-                mode=selector.NumberSelectorMode.BOX,
-                unit_of_measurement="",
-            ),
-        ),
+            CONF_DEVICE,
+        ): selector.SerialPortSelector()
     },
 )
 
@@ -36,7 +24,9 @@ SUB_STEP_USER = vol.Schema(
 
 
 class SamsungEhsConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
-    """Config flow for Blueprint."""
+    """Config flow for Samsung EHS."""
+
+    VERSION = 2
 
     @classmethod
     @callback
@@ -52,10 +42,10 @@ class SamsungEhsConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         """Handle a flow initialized by the user."""
         _errors = {}
         if user_input is not None:
-            await self.async_set_unique_id(unique_id=user_input[CONF_HOST])
+            await self.async_set_unique_id(unique_id=user_input[CONF_DEVICE])
             self._abort_if_unique_id_configured()
             return self.async_create_entry(
-                title=user_input[CONF_HOST],
+                title=user_input[CONF_DEVICE],
                 data=user_input,
             )
 
@@ -70,7 +60,7 @@ class SamsungEhsConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
 
 
 class SamsungEhsDeviceSubentry(config_entries.ConfigSubentryFlow):
-    """Sub entry config flow for devices on the NASA protocol."""
+    """Sub entry config flow for devices on the Samsung EHS protocol."""
 
     async def async_step_user(
         self, user_input: dict | None = None

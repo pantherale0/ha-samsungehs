@@ -3,8 +3,10 @@
         "step": {
             "user": {
                 "data": {
-                    "host": "IP Address",
-                    "port": "Port"
+                    "device": "Port"
+                },
+                "data_description": {
+                    "device": "Serial port path to connect to"
                 }
             }
         }
