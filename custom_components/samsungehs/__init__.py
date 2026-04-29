@@ -10,7 +10,7 @@ from __future__ import annotations
 from datetime import timedelta
 from typing import TYPE_CHECKING
 
-from homeassistant.const import CONF_HOST, CONF_PORT, Platform
+from homeassistant.const import CONF_DEVICE, CONF_HOST, CONF_PORT, Platform
 from homeassistant.exceptions import ConfigEntryNotReady
 from homeassistant.helpers import config_validation as cv
 from homeassistant.helpers.typing import ConfigType
@@ -71,8 +71,7 @@ async def async_setup_entry(
         )
 
     client = SamsungNasa(
-        host=entry.data[CONF_HOST],
-        port=entry.data[CONF_PORT],
+        url=entry.data[CONF_DEVICE],
         config={
             "device_addresses": [
                 subentry.unique_id for subentry in entry.subentries.values()
@@ -125,3 +124,23 @@ async def async_reload_entry(
     """Reload config entry."""
     await entry.runtime_data.client.stop()
     await hass.config_entries.async_reload(entry.entry_id)
+
+
+async def async_migrate_entry(
+    hass: HomeAssistant,
+    entry: SamsungEhsConfigEntry,
+) -> bool:
+    """Migrate old entry."""
+    if entry.version == 1:
+        # In version 1, serialx was not used
+        # In version 2, we now use the full URL as the connection string
+        hass.config_entries.async_update_entry(
+            entry,
+            data={
+                CONF_DEVICE: f"socket://{entry.data[CONF_HOST]}:{int(entry.data[CONF_PORT])}",
+            },
+            unique_id=f"socket://{entry.data[CONF_HOST]}:{int(entry.data[CONF_PORT])}",
+            version=2,
+        )
+        return True
+    return False
