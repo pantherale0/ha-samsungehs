@@ -100,6 +100,7 @@ async def async_setup_entry(
                 DbCodeMiComMainMessage, requires_read=True
             )
     except Exception as ex:
+        await client.stop()
         raise ConfigEntryNotReady from ex
     # Setup platforms first to populate a list of messages to retrieve
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
