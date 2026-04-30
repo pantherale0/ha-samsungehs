@@ -71,11 +71,11 @@ async def async_setup_entry(
         )
 
     client = SamsungNasa(
-        url=entry.data[CONF_DEVICE],
         config={
             "device_addresses": [
                 subentry.unique_id for subentry in entry.subentries.values()
             ],
+            "device_path": entry.data[CONF_DEVICE],
         },
         new_device_event_handler=trigger_new_device,
     )
