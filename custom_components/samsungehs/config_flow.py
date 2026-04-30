@@ -33,7 +33,27 @@ class SamsungEhsConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
     def async_get_supported_subentry_types(
         cls, config_entry: config_entries.ConfigEntry
     ) -> dict[str, type[config_entries.ConfigSubentryFlow]]:
-        return {"device": SamsungEhsDeviceSubentry}
+        """Return the supported sub entry types for this config entry."""
+        return {CONF_DEVICE: SamsungEhsDeviceSubentry}
+
+    async def async_step_reconfigure(
+        self, user_input: dict | None = None
+    ) -> config_entries.ConfigFlowResult:
+        """Handle a flow reconfiguration."""
+        if user_input is not None:
+            await self.async_set_unique_id(unique_id=user_input[CONF_DEVICE])
+            self._abort_if_unique_id_configured()
+            return self.async_update_reload_and_abort(
+                self._get_reconfigure_entry(),
+                data_updates={CONF_DEVICE: user_input[CONF_DEVICE]},
+            )
+        return self.async_show_form(
+            step_id="reconfigure",
+            data_schema=self.add_suggested_values_to_schema(
+                MAIN_STEP_USER,
+                user_input or {},
+            ),
+        )
 
     async def async_step_user(
         self,

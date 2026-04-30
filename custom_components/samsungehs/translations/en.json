@@ -8,10 +8,18 @@
                 "data_description": {
                     "device": "Serial port path to connect to"
                 }
+            },
+            "reconfigure": {
+                "data": {
+                    "device": "Port"
+                },
+                "data_description": {
+                    "device": "Serial port path to connect to"
+                }
             }
         }
     },
-    "config_subentires": {
+    "config_subentries": {
         "device": {
             "initiate_flow": {
                 "user": "Add NASA Device"
@@ -19,8 +27,7 @@
             "step": {
                 "user": {
                     "data": {
-                        "address": "NASA Address",
-                        "sensors": "Extra sensors (message numbers)"
+                        "address": "NASA Address"
                     }
                 }
             }
