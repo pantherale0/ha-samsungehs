@@ -14,15 +14,10 @@ from pysamsungnasa.protocol.enum import (
     InFsv3042DayOfWeek,
     InUseThermostat,
     SamsungEnum,
-)
-from pysamsungnasa.protocol.enum import (
     InFsv2041WaterLawTypeHeating as InFsv2041WaterLawTypeHeatingEnum,
-)
-from pysamsungnasa.protocol.enum import (
     InFsv2093 as InFsv2093Enum,
-)
-from pysamsungnasa.protocol.enum import (
     InFsv4051 as InFsv4051Enum,
+    InFsv4053 as InFsv4053Enum,
 )
 from pysamsungnasa.protocol.factory.messages.indoor import (
     InFsv2041WaterLawTypeHeating,
@@ -31,6 +26,7 @@ from pysamsungnasa.protocol.factory.messages.indoor import (
     InFsv2093,
     InFsv3042,
     InFsv4051,
+    InFsv4053,
 )
 from pysamsungnasa.protocol.factory.types import BaseMessage
 
@@ -55,6 +51,7 @@ class SamsungEHSSelectKey(StrEnum):
     REMOTE_CONTROLLER_ROOM_TEMP_CONTROL = "remote_controller_room_temp_control"
     DHW_DISINFECTION_DAY_OF_WEEK = "dhw_disinfection_day_of_week"
     PWM_PUMP_MODE = "pwm_pump_mode"
+    INVERTER_PUMP_CONTROL_FACTOR = "inverter_pump_control_factor"
     DHW_SUPPLY_RATIO = "dhw_supply_ratio"
 
 
@@ -103,6 +100,12 @@ SELECTS: tuple[SamsungEHSSelectEntityDescription, ...] = (
         translation_key=SamsungEHSSelectKey.PWM_PUMP_MODE,
         message=InFsv4051,
         options=InFsv4051Enum,
+    ),
+    SamsungEHSSelectEntityDescription(
+        key=SamsungEHSSelectKey.INVERTER_PUMP_CONTROL_FACTOR,
+        translation_key=SamsungEHSSelectKey.INVERTER_PUMP_CONTROL_FACTOR,
+        message=InFsv4053,
+        options=InFsv4053Enum,
     ),
 )
 

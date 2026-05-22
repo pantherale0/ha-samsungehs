@@ -25,7 +25,23 @@ from pysamsungnasa.protocol.factory.messages.indoor import (
     InFsv3044,
     InFsv3045,
     InFsv3046,
+    InFsv4052,
+    InFsv5011Message,
+    InFsv5012Message,
+    InFsv5013Message,
+    InFsv5014Message,
+    InFsv5015Message,
+    InFsv5016Message,
+    InFsv5017Message,
+    InFsv5018Message,
+    InFsv5019Message,
+    InFsv5021,
+    InFsv5023,
     InFsv5051,
+    InFsv5082,
+    InFsv5083,
+    InFsv5092,
+    InFsv5093,
     InOutdoorCompressorFrequencyRateControlMessage,
 )
 
@@ -54,8 +70,24 @@ class SamsungEHSNumberKey(StrEnum):
     DHW_DISINFECTION_DURATION_MINUTES = "dhw_disinfection_duration_minutes"
     DHW_DISINFECTION_MAX_HOURS = "dhw_disinfection_max_hours"
     DHW_MAX_OPERATION_TIME = "dhw_max_operation_time"
+    INVERTER_PUMP_TARGET_DELTA_T = "inverter_pump_target_delta_t"
     FSV2021_WATER_OUT_TEMP_WL1_HEATING_MAX = "fsv2021_water_out_temp_wl1_heating_max"
     FSV2022_WATER_OUT_TEMP_WL1_HEATING_MIN = "fsv2022_water_out_temp_wl1_heating_min"
+    FSV5011_OUTING_MODE_WATER_OUT_TEMP_COOLING = "fsv5011_outing_mode_water_out_temp_cooling"
+    FSV5012_OUTING_MODE_ROOM_TEMP_COOLING = "fsv5012_outing_mode_room_temp_cooling"
+    FSV5013_OUTING_MODE_WATER_OUT_TEMP_HEATING = "fsv5013_outing_mode_water_out_temp_heating"
+    FSV5014_OUTING_MODE_ROOM_TEMP_HEATING = "fsv5014_outing_mode_room_temp_heating"
+    FSV5015_OUTING_MODE_AUTO_COOL_WL1_WATER_TEMP = "fsv5015_outing_mode_auto_cool_wl1_water_temp"
+    FSV5016_OUTING_MODE_AUTO_COOL_WL2_WATER_TEMP = "fsv5016_outing_mode_auto_cool_wl2_water_temp"
+    FSV5017_OUTING_MODE_AUTO_HEAT_WL1_WATER_TEMP = "fsv5017_outing_mode_auto_heat_wl1_water_temp"
+    FSV5018_OUTING_MODE_AUTO_HEAT_WL2_WATER_TEMP = "fsv5018_outing_mode_auto_heat_wl2_water_temp"
+    FSV5019_OUTING_MODE_TARGET_TANK_TEMP = "fsv5019_outing_mode_target_tank_temp"
+    FSV5021_DHW_SAVING_TEMP_OFFSET = "fsv5021_dhw_saving_temp_offset"
+    FSV5023_DHW_SAVING_THERMO_ON_TEMP = "fsv5023_dhw_saving_thermo_on_temp"
+    FSV5082_PV_CONTROL_COOL_TEMP_SHIFT = "fsv5082_pv_control_cool_temp_shift"
+    FSV5083_PV_CONTROL_HEAT_TEMP_SHIFT = "fsv5083_pv_control_heat_temp_shift"
+    FSV5092_SMART_GRID_HEAT_TEMP_SHIFT = "fsv5092_smart_grid_heat_temp_shift"
+    FSV5093_SMART_GRID_DHW_TEMP_SHIFT = "fsv5093_smart_grid_dhw_temp_shift"
 
 
 @dataclass(frozen=True, kw_only=True)
@@ -192,6 +224,170 @@ NUMBERS: tuple[SamsungEHSNumberEntityDescription, ...] = (
         native_step=1.0,
         native_min_value=17.0,
         native_max_value=65.0,
+        native_unit_of_measurement=UnitOfTemperature.CELSIUS,
+    ),
+    SamsungEHSNumberEntityDescription(
+        key=SamsungEHSNumberKey.INVERTER_PUMP_TARGET_DELTA_T,
+        message=InFsv4052,
+        write_fn=lambda device, value: device.write_attribute(
+            InFsv4052,
+            value=int(value),
+        ),
+        translation_key=SamsungEHSNumberKey.INVERTER_PUMP_TARGET_DELTA_T,
+        requires_read=True,
+        native_step=1.0,
+        native_min_value=2.0,
+        native_max_value=8.0,
+        native_unit_of_measurement=UnitOfTemperature.CELSIUS,
+    ),
+    SamsungEHSNumberEntityDescription(
+        key=SamsungEHSNumberKey.FSV5011_OUTING_MODE_WATER_OUT_TEMP_COOLING,
+        message=InFsv5011Message,
+        translation_key=SamsungEHSNumberKey.FSV5011_OUTING_MODE_WATER_OUT_TEMP_COOLING,
+        requires_read=True,
+        native_step=1.0,
+        native_min_value=5.0,
+        native_max_value=25.0,
+        native_unit_of_measurement=UnitOfTemperature.CELSIUS,
+    ),
+    SamsungEHSNumberEntityDescription(
+        key=SamsungEHSNumberKey.FSV5012_OUTING_MODE_ROOM_TEMP_COOLING,
+        message=InFsv5012Message,
+        translation_key=SamsungEHSNumberKey.FSV5012_OUTING_MODE_ROOM_TEMP_COOLING,
+        requires_read=True,
+        native_step=1.0,
+        native_min_value=18.0,
+        native_max_value=30.0,
+        native_unit_of_measurement=UnitOfTemperature.CELSIUS,
+    ),
+    SamsungEHSNumberEntityDescription(
+        key=SamsungEHSNumberKey.FSV5013_OUTING_MODE_WATER_OUT_TEMP_HEATING,
+        message=InFsv5013Message,
+        translation_key=SamsungEHSNumberKey.FSV5013_OUTING_MODE_WATER_OUT_TEMP_HEATING,
+        requires_read=True,
+        native_step=1.0,
+        native_min_value=15.0,
+        native_max_value=55.0,
+        native_unit_of_measurement=UnitOfTemperature.CELSIUS,
+    ),
+    SamsungEHSNumberEntityDescription(
+        key=SamsungEHSNumberKey.FSV5014_OUTING_MODE_ROOM_TEMP_HEATING,
+        message=InFsv5014Message,
+        translation_key=SamsungEHSNumberKey.FSV5014_OUTING_MODE_ROOM_TEMP_HEATING,
+        requires_read=True,
+        native_step=1.0,
+        native_min_value=16.0,
+        native_max_value=30.0,
+        native_unit_of_measurement=UnitOfTemperature.CELSIUS,
+    ),
+    SamsungEHSNumberEntityDescription(
+        key=SamsungEHSNumberKey.FSV5015_OUTING_MODE_AUTO_COOL_WL1_WATER_TEMP,
+        message=InFsv5015Message,
+        translation_key=SamsungEHSNumberKey.FSV5015_OUTING_MODE_AUTO_COOL_WL1_WATER_TEMP,
+        requires_read=True,
+        native_step=1.0,
+        native_min_value=5.0,
+        native_max_value=25.0,
+        native_unit_of_measurement=UnitOfTemperature.CELSIUS,
+    ),
+    SamsungEHSNumberEntityDescription(
+        key=SamsungEHSNumberKey.FSV5016_OUTING_MODE_AUTO_COOL_WL2_WATER_TEMP,
+        message=InFsv5016Message,
+        translation_key=SamsungEHSNumberKey.FSV5016_OUTING_MODE_AUTO_COOL_WL2_WATER_TEMP,
+        requires_read=True,
+        native_step=1.0,
+        native_min_value=5.0,
+        native_max_value=25.0,
+        native_unit_of_measurement=UnitOfTemperature.CELSIUS,
+    ),
+    SamsungEHSNumberEntityDescription(
+        key=SamsungEHSNumberKey.FSV5017_OUTING_MODE_AUTO_HEAT_WL1_WATER_TEMP,
+        message=InFsv5017Message,
+        translation_key=SamsungEHSNumberKey.FSV5017_OUTING_MODE_AUTO_HEAT_WL1_WATER_TEMP,
+        requires_read=True,
+        native_step=1.0,
+        native_min_value=15.0,
+        native_max_value=55.0,
+        native_unit_of_measurement=UnitOfTemperature.CELSIUS,
+    ),
+    SamsungEHSNumberEntityDescription(
+        key=SamsungEHSNumberKey.FSV5018_OUTING_MODE_AUTO_HEAT_WL2_WATER_TEMP,
+        message=InFsv5018Message,
+        translation_key=SamsungEHSNumberKey.FSV5018_OUTING_MODE_AUTO_HEAT_WL2_WATER_TEMP,
+        requires_read=True,
+        native_step=1.0,
+        native_min_value=15.0,
+        native_max_value=55.0,
+        native_unit_of_measurement=UnitOfTemperature.CELSIUS,
+    ),
+    SamsungEHSNumberEntityDescription(
+        key=SamsungEHSNumberKey.FSV5019_OUTING_MODE_TARGET_TANK_TEMP,
+        message=InFsv5019Message,
+        translation_key=SamsungEHSNumberKey.FSV5019_OUTING_MODE_TARGET_TANK_TEMP,
+        requires_read=True,
+        native_step=1.0,
+        native_min_value=30.0,
+        native_max_value=70.0,
+        native_unit_of_measurement=UnitOfTemperature.CELSIUS,
+    ),
+    SamsungEHSNumberEntityDescription(
+        key=SamsungEHSNumberKey.FSV5021_DHW_SAVING_TEMP_OFFSET,
+        message=InFsv5021,
+        translation_key=SamsungEHSNumberKey.FSV5021_DHW_SAVING_TEMP_OFFSET,
+        requires_read=True,
+        native_step=1.0,
+        native_min_value=0.0,
+        native_max_value=40.0,
+        native_unit_of_measurement=UnitOfTemperature.CELSIUS,
+    ),
+    SamsungEHSNumberEntityDescription(
+        key=SamsungEHSNumberKey.FSV5023_DHW_SAVING_THERMO_ON_TEMP,
+        message=InFsv5023,
+        translation_key=SamsungEHSNumberKey.FSV5023_DHW_SAVING_THERMO_ON_TEMP,
+        requires_read=True,
+        native_step=1.0,
+        native_min_value=0.0,
+        native_max_value=40.0,
+        native_unit_of_measurement=UnitOfTemperature.CELSIUS,
+    ),
+    SamsungEHSNumberEntityDescription(
+        key=SamsungEHSNumberKey.FSV5082_PV_CONTROL_COOL_TEMP_SHIFT,
+        message=InFsv5082,
+        translation_key=SamsungEHSNumberKey.FSV5082_PV_CONTROL_COOL_TEMP_SHIFT,
+        requires_read=True,
+        native_step=0.5,
+        native_min_value=0.0,
+        native_max_value=5.0,
+        native_unit_of_measurement=UnitOfTemperature.CELSIUS,
+    ),
+    SamsungEHSNumberEntityDescription(
+        key=SamsungEHSNumberKey.FSV5083_PV_CONTROL_HEAT_TEMP_SHIFT,
+        message=InFsv5083,
+        translation_key=SamsungEHSNumberKey.FSV5083_PV_CONTROL_HEAT_TEMP_SHIFT,
+        requires_read=True,
+        native_step=0.5,
+        native_min_value=0.0,
+        native_max_value=5.0,
+        native_unit_of_measurement=UnitOfTemperature.CELSIUS,
+    ),
+    SamsungEHSNumberEntityDescription(
+        key=SamsungEHSNumberKey.FSV5092_SMART_GRID_HEAT_TEMP_SHIFT,
+        message=InFsv5092,
+        translation_key=SamsungEHSNumberKey.FSV5092_SMART_GRID_HEAT_TEMP_SHIFT,
+        requires_read=True,
+        native_step=0.5,
+        native_min_value=2.0,
+        native_max_value=5.0,
+        native_unit_of_measurement=UnitOfTemperature.CELSIUS,
+    ),
+    SamsungEHSNumberEntityDescription(
+        key=SamsungEHSNumberKey.FSV5093_SMART_GRID_DHW_TEMP_SHIFT,
+        message=InFsv5093,
+        translation_key=SamsungEHSNumberKey.FSV5093_SMART_GRID_DHW_TEMP_SHIFT,
+        requires_read=True,
+        native_step=0.5,
+        native_min_value=2.0,
+        native_max_value=5.0,
         native_unit_of_measurement=UnitOfTemperature.CELSIUS,
     ),
 )

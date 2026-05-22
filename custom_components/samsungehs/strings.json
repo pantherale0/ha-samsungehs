@@ -252,6 +252,54 @@
             },
             "fsv2022_water_out_temp_wl1_heating_min": {
                 "name": "FSV2022 Water Out Temp WL1 Heating Min"
+            },
+            "inverter_pump_target_delta_t": {
+                "name": "Inverter Pump Target Delta-T"
+            },
+            "fsv5011_outing_mode_water_out_temp_cooling": {
+                "name": "Outing Mode Water Out Temp (Cooling)"
+            },
+            "fsv5012_outing_mode_room_temp_cooling": {
+                "name": "Outing Mode Room Temp (Cooling)"
+            },
+            "fsv5013_outing_mode_water_out_temp_heating": {
+                "name": "Outing Mode Water Out Temp (Heating)"
+            },
+            "fsv5014_outing_mode_room_temp_heating": {
+                "name": "Outing Mode Room Temp (Heating)"
+            },
+            "fsv5015_outing_mode_auto_cool_wl1_water_temp": {
+                "name": "Outing Mode Auto Cool WL1 Water Temp"
+            },
+            "fsv5016_outing_mode_auto_cool_wl2_water_temp": {
+                "name": "Outing Mode Auto Cool WL2 Water Temp"
+            },
+            "fsv5017_outing_mode_auto_heat_wl1_water_temp": {
+                "name": "Outing Mode Auto Heat WL1 Water Temp"
+            },
+            "fsv5018_outing_mode_auto_heat_wl2_water_temp": {
+                "name": "Outing Mode Auto Heat WL2 Water Temp"
+            },
+            "fsv5019_outing_mode_target_tank_temp": {
+                "name": "Outing Mode Target Tank Temp"
+            },
+            "fsv5021_dhw_saving_temp_offset": {
+                "name": "DHW Saving Temp Offset"
+            },
+            "fsv5023_dhw_saving_thermo_on_temp": {
+                "name": "DHW Saving Thermo On Temp"
+            },
+            "fsv5082_pv_control_cool_temp_shift": {
+                "name": "PV Control Cool Temp Shift"
+            },
+            "fsv5083_pv_control_heat_temp_shift": {
+                "name": "PV Control Heat Temp Shift"
+            },
+            "fsv5092_smart_grid_heat_temp_shift": {
+                "name": "Smart Grid Heat Temp Shift"
+            },
+            "fsv5093_smart_grid_dhw_temp_shift": {
+                "name": "Smart Grid DHW Temp Shift"
             }
         },
         "select": {
@@ -310,6 +358,14 @@
                     "no": "Disabled",
                     "yes 100 percent": "Enabled",
                     "yes 70 percent": "Enabled (70%)"
+                }
+            },
+            "inverter_pump_control_factor": {
+                "name": "Inverter Pump Control Factor",
+                "state": {
+                    "slow": "Slow",
+                    "medium": "Medium",
+                    "fast": "Fast"
                 }
             }
         }
