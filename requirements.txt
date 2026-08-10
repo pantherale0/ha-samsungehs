@@ -1,3 +1,3 @@
 colorlog==6.7.0
 homeassistant==2026.5.3
-pysamsungnasa==2.0.0a4
+pysamsungnasa==2.0.0
