@@ -14,12 +14,13 @@ from homeassistant.components.switch import (
 from pysamsungnasa.helpers import Address
 from pysamsungnasa.protocol.enum import (
     AddressClass,
+    InSilence,
 )
 from pysamsungnasa.protocol.factory.messages.indoor import (
     InFsv3041,
     InFsv5051,
     InOutingModeMessage,
-    InQuietModeMessage,
+    InSilenceMessage,
 )
 
 from .entity import SamsungEhsEntity
@@ -48,6 +49,8 @@ class SamsungEHSSwitchEntityDescription(SwitchEntityDescription):
     """Describes Samsung EHS switch entity."""
 
     message: type[BaseMessage]
+    on_value: Any = True
+    off_value: Any = False
     requires_read: bool = False
 
 
@@ -57,10 +60,13 @@ SWITCHES: tuple[SamsungEHSSwitchEntityDescription, ...] = (
         translation_key=SamsungEHSSwitchKey.OUTING_MODE,
         message=InOutingModeMessage,
     ),
+    # EHS Quiet Mode is silence (0x4046), not indoor AC quiet (0x406E).
     SamsungEHSSwitchEntityDescription(
         key=SamsungEHSSwitchKey.QUIET_MODE,
         translation_key=SamsungEHSSwitchKey.QUIET_MODE,
-        message=InQuietModeMessage,
+        message=InSilenceMessage,
+        on_value=InSilence.ON,
+        off_value=InSilence.OFF,
         requires_read=True,
     ),
     SamsungEHSSwitchEntityDescription(
@@ -128,16 +134,23 @@ class SamsungEHSSwitch(SamsungEhsEntity, SwitchEntity):
             or self._message.MESSAGE_ID not in self._device.attributes
         ):
             return None
-        return self._device.attributes[self._message.MESSAGE_ID].VALUE
+        value = self._device.attributes[self._message.MESSAGE_ID].VALUE
+        if value is None:
+            return None
+        return value == self.entity_description.on_value
 
     async def async_turn_on(self, **kwargs: Any) -> None:
         """Turn the switch on."""
         if self._message is None:
             return
-        await self._device.write_attribute(self._message, value=True)
+        await self._device.write_attribute(
+            self._message, value=self.entity_description.on_value
+        )
 
     async def async_turn_off(self, **kwargs: Any) -> None:
         """Turn the switch off."""
         if self._message is None:
             return
-        await self._device.write_attribute(self._message, value=False)
+        await self._device.write_attribute(
+            self._message, value=self.entity_description.off_value
+        )
