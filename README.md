@@ -308,6 +308,10 @@ Contributions are welcome! Please see [CONTRIBUTING.md](CONTRIBUTING.md) for gui
 
 ## Development
 
+Releases are managed by Release Please. See the
+[release process](CONTRIBUTING.md#release-process) for commit conventions and
+repository setup.
+
 This project includes a development environment that can be set up using Docker and Visual Studio Code:
 
 ```bash

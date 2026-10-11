@@ -23,3 +23,9 @@ keep-runtime-typing = true
 
 [lint.mccabe]
 max-complexity = 25
+
+[lint.per-file-ignores]
+# These CLI checks invoke Git with argument lists and report results to the user.
+"scripts/check_commits.py" = ["INP001", "S603", "S607", "T201"]
+# The dependency-free test runner uses unittest assertions and local subprocesses.
+"tests/test_check_commits.py" = ["PT009", "S603", "S607"]

@@ -1,0 +1,18 @@
+{
+  "$schema": "https://raw.githubusercontent.com/googleapis/release-please/main/schemas/config.json",
+  "bootstrap-sha": "ab95f991d6ee2a5cf00b03fae8242cc5b0c08a17",
+  "packages": {
+    ".": {
+      "release-type": "simple",
+      "include-component-in-tag": false,
+      "include-v-in-tag": true,
+      "extra-files": [
+        {
+          "type": "json",
+          "path": "custom_components/samsungehs/manifest.json",
+          "jsonpath": "$.version"
+        }
+      ]
+    }
+  }
+}
