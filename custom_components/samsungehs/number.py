@@ -12,7 +12,7 @@ from homeassistant.components.number import (
     NumberEntityDescription,
     NumberMode,
 )
-from homeassistant.const import PERCENTAGE, UnitOfTime, UnitOfTemperature
+from homeassistant.const import PERCENTAGE, UnitOfTemperature, UnitOfTime
 from pysamsungnasa.helpers import Address
 from pysamsungnasa.protocol.enum import (
     AddressClass,
@@ -25,6 +25,7 @@ from pysamsungnasa.protocol.factory.messages.indoor import (
     InFsv3044,
     InFsv3045,
     InFsv3046,
+    InFsv4013,
     InFsv4052,
     InFsv5011Message,
     InFsv5012Message,
@@ -73,14 +74,26 @@ class SamsungEHSNumberKey(StrEnum):
     INVERTER_PUMP_TARGET_DELTA_T = "inverter_pump_target_delta_t"
     FSV2021_WATER_OUT_TEMP_WL1_HEATING_MAX = "fsv2021_water_out_temp_wl1_heating_max"
     FSV2022_WATER_OUT_TEMP_WL1_HEATING_MIN = "fsv2022_water_out_temp_wl1_heating_min"
-    FSV5011_OUTING_MODE_WATER_OUT_TEMP_COOLING = "fsv5011_outing_mode_water_out_temp_cooling"
+    FSV5011_OUTING_MODE_WATER_OUT_TEMP_COOLING = (
+        "fsv5011_outing_mode_water_out_temp_cooling"
+    )
     FSV5012_OUTING_MODE_ROOM_TEMP_COOLING = "fsv5012_outing_mode_room_temp_cooling"
-    FSV5013_OUTING_MODE_WATER_OUT_TEMP_HEATING = "fsv5013_outing_mode_water_out_temp_heating"
+    FSV5013_OUTING_MODE_WATER_OUT_TEMP_HEATING = (
+        "fsv5013_outing_mode_water_out_temp_heating"
+    )
     FSV5014_OUTING_MODE_ROOM_TEMP_HEATING = "fsv5014_outing_mode_room_temp_heating"
-    FSV5015_OUTING_MODE_AUTO_COOL_WL1_WATER_TEMP = "fsv5015_outing_mode_auto_cool_wl1_water_temp"
-    FSV5016_OUTING_MODE_AUTO_COOL_WL2_WATER_TEMP = "fsv5016_outing_mode_auto_cool_wl2_water_temp"
-    FSV5017_OUTING_MODE_AUTO_HEAT_WL1_WATER_TEMP = "fsv5017_outing_mode_auto_heat_wl1_water_temp"
-    FSV5018_OUTING_MODE_AUTO_HEAT_WL2_WATER_TEMP = "fsv5018_outing_mode_auto_heat_wl2_water_temp"
+    FSV5015_OUTING_MODE_AUTO_COOL_WL1_WATER_TEMP = (
+        "fsv5015_outing_mode_auto_cool_wl1_water_temp"
+    )
+    FSV5016_OUTING_MODE_AUTO_COOL_WL2_WATER_TEMP = (
+        "fsv5016_outing_mode_auto_cool_wl2_water_temp"
+    )
+    FSV5017_OUTING_MODE_AUTO_HEAT_WL1_WATER_TEMP = (
+        "fsv5017_outing_mode_auto_heat_wl1_water_temp"
+    )
+    FSV5018_OUTING_MODE_AUTO_HEAT_WL2_WATER_TEMP = (
+        "fsv5018_outing_mode_auto_heat_wl2_water_temp"
+    )
     FSV5019_OUTING_MODE_TARGET_TANK_TEMP = "fsv5019_outing_mode_target_tank_temp"
     FSV5021_DHW_SAVING_TEMP_OFFSET = "fsv5021_dhw_saving_temp_offset"
     FSV5023_DHW_SAVING_THERMO_ON_TEMP = "fsv5023_dhw_saving_thermo_on_temp"
@@ -88,6 +101,7 @@ class SamsungEHSNumberKey(StrEnum):
     FSV5083_PV_CONTROL_HEAT_TEMP_SHIFT = "fsv5083_pv_control_heat_temp_shift"
     FSV5092_SMART_GRID_HEAT_TEMP_SHIFT = "fsv5092_smart_grid_heat_temp_shift"
     FSV5093_SMART_GRID_DHW_TEMP_SHIFT = "fsv5093_smart_grid_dhw_temp_shift"
+    FSV4013_HEAT_OFF_TEMP = "fsv4013_heat_off_temp"
 
 
 @dataclass(frozen=True, kw_only=True)
@@ -111,22 +125,26 @@ NUMBERS: tuple[SamsungEHSNumberEntityDescription, ...] = (
             InOutdoorCompressorFrequencyRateControlMessage,
             value={"frequency_ratio_percent": int(value)},
         ),
-        value_fn=lambda device: get_dict_value(
-            device.attributes[
-                InOutdoorCompressorFrequencyRateControlMessage.MESSAGE_ID
-            ],
-            "frequency_ratio_percent",
-        )
-        if InOutdoorCompressorFrequencyRateControlMessage.MESSAGE_ID is not None
-        else None,
+        value_fn=lambda device: (
+            get_dict_value(
+                device.attributes[
+                    InOutdoorCompressorFrequencyRateControlMessage.MESSAGE_ID
+                ],
+                "frequency_ratio_percent",
+            )
+            if InOutdoorCompressorFrequencyRateControlMessage.MESSAGE_ID is not None
+            else None
+        ),
         translation_key=SamsungEHSNumberKey.FREQUENCY_RATIO_CONTROL_PERCENT,
         requires_read=True,
         native_step=10.0,
         native_min_value=50.0,
         native_max_value=150.0,
         native_unit_of_measurement=PERCENTAGE,
-        available_fn=lambda entity: entity.get_attribute(InFsv5051) is not None
-        and bool(entity.get_attribute(InFsv5051)),
+        available_fn=lambda entity: (
+            entity.get_attribute(InFsv5051) is not None
+            and bool(entity.get_attribute(InFsv5051))
+        ),
     ),
     SamsungEHSNumberEntityDescription(
         key=SamsungEHSNumberKey.DHW_DISINFECTION_START_HOUR,
@@ -224,6 +242,16 @@ NUMBERS: tuple[SamsungEHSNumberEntityDescription, ...] = (
         native_step=1.0,
         native_min_value=17.0,
         native_max_value=65.0,
+        native_unit_of_measurement=UnitOfTemperature.CELSIUS,
+    ),
+    SamsungEHSNumberEntityDescription(
+        key=SamsungEHSNumberKey.FSV4013_HEAT_OFF_TEMP,
+        message=InFsv4013,
+        translation_key=SamsungEHSNumberKey.FSV4013_HEAT_OFF_TEMP,
+        requires_read=True,
+        native_step=0.1,
+        native_min_value=10.0,
+        native_max_value=35.0,
         native_unit_of_measurement=UnitOfTemperature.CELSIUS,
     ),
     SamsungEHSNumberEntityDescription(
