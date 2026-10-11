@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.1.1](https://github.com/pantherale0/ha-samsungehs/compare/v1.1.0...v1.1.1) (2026-10-11)
+
+
+### Bug Fixes
+
+* ensure integration zip is included in release ([bbcaab6](https://github.com/pantherale0/ha-samsungehs/commit/bbcaab61ddb9f5cc82b3702851ecb867ed16be5d))
+
 ## [1.1.0](https://github.com/pantherale0/ha-samsungehs/compare/v1.0.0...v1.1.0) (2026-10-11)
 
 
