@@ -64,8 +64,23 @@ It maintains a release pull request with a generated `CHANGELOG.md`, updates
 `version.txt` and `.release-please-manifest.json`, and updates the integration's
 `version` in `custom_components/samsungehs/manifest.json`.
 Merging that pull request causes the next workflow run to create a `vX.Y.Z` tag
-and a GitHub release with release notes. HACS installs the integration from the
-tagged repository, so no separate ZIP asset is required.
+and a GitHub release with release notes. The same workflow checks out the release
+tag, packages its integration files as `samsungehs.zip`, verifies that the
+packaged manifest version matches the tag, and uploads the ZIP to the release.
+HACS downloads this asset. The archive contains the contents of
+`custom_components/samsungehs` at its root, including translations and service
+definitions.
+
+To retry packaging after an upload failure, run the **Release** workflow manually
+on `main` with `release_tag` set to the existing release tag, such as `v1.1.0`.
+This replaces the ZIP asset without creating another release. Leave the input
+empty for normal release management.
+
+Build the same archive locally from a release tag with:
+
+```bash
+git archive --format=zip --output=/tmp/samsungehs.zip v1.1.0:custom_components/samsungehs
+```
 
 Use Conventional Commit messages for changes merged into `main`:
 

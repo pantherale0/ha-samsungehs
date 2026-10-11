@@ -243,7 +243,7 @@ Once your UART bridge is set up:
 
 ### Manual Installation
 
-1. Copy the `custom_components/samsungehs` directory to your Home Assistant `custom_components` directory
+1. Download `samsungehs.zip` from the desired GitHub release and extract it into your Home Assistant `custom_components/samsungehs` directory
 2. Restart Home Assistant
 3. Go to Settings → Devices & Services → Create Integration
 4. Search for "Samsung EHS" and follow the configuration flow

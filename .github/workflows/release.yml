@@ -5,6 +5,11 @@ on:
     branches:
       - main
   workflow_dispatch:
+    inputs:
+      release_tag:
+        description: 'Existing release tag to package or repair, for example v1.1.0. Leave empty for normal release management.'
+        required: false
+        type: string
 
 permissions:
   contents: write
@@ -21,9 +26,42 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Update release PR or publish merged release
+        if: inputs.release_tag == ''
+        id: release
         uses: googleapis/release-please-action@v4
         with:
           token: ${{ secrets.RELEASE_PLEASE_TOKEN || github.token }}
           target-branch: main
           config-file: release-please-config.json
           manifest-file: .release-please-manifest.json
+      - name: Check out the release tag
+        if: steps.release.outputs.release_created == 'true' || inputs.release_tag != ''
+        uses: actions/checkout@v4
+        with:
+          ref: refs/tags/${{ inputs.release_tag || steps.release.outputs.tag_name }}
+          persist-credentials: false
+      - name: Package integration
+        if: steps.release.outputs.release_created == 'true' || inputs.release_tag != ''
+        env:
+          RELEASE_TAG: ${{ inputs.release_tag || steps.release.outputs.tag_name }}
+        run: |
+          git archive --format=zip --output="$RUNNER_TEMP/samsungehs.zip" HEAD:custom_components/samsungehs
+          python - <<'PY'
+          import json
+          import os
+          import zipfile
+
+          with zipfile.ZipFile(os.path.join(os.environ["RUNNER_TEMP"], "samsungehs.zip")) as archive:
+              if archive.testzip() is not None:
+                  raise SystemExit("Release ZIP is corrupt")
+              manifest = json.loads(archive.read("manifest.json"))
+              if manifest["version"] != os.environ["RELEASE_TAG"].removeprefix("v"):
+                  raise SystemExit("Release tag and integration version do not match")
+          PY
+      - name: Upload release ZIP
+        if: steps.release.outputs.release_created == 'true' || inputs.release_tag != ''
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          RELEASE_TAG: ${{ inputs.release_tag || steps.release.outputs.tag_name }}
+        run: gh release upload "$RELEASE_TAG" "$RUNNER_TEMP/samsungehs.zip" --clobber
