@@ -7,6 +7,7 @@ from unittest.mock import AsyncMock
 
 from pysamsungnasa.protocol.enum import DataType, InOperationMode
 from pysamsungnasa.protocol.factory.messages import indoor
+from pysamsungnasa.protocol.factory.types import EnumMessage
 
 from custom_components.samsungehs.climate import SamsungEhsClimate
 from custom_components.samsungehs.number import NUMBERS, SamsungEHSNumber
@@ -62,9 +63,15 @@ class FsvEntities(unittest.IsolatedAsyncioTestCase):
                     (indoor.InWaterOutletTargetTemperature, 30.0),
                     (indoor.InWaterLawTargetTemperature, 2.0),
                 ):
-                    device.attributes[message.MESSAGE_ID] = message(value=value)
+                    device.attributes[message.MESSAGE_ID] = (
+                        message.parse_payload(bytes([value]))
+                        if issubclass(message, EnumMessage)
+                        else message(value=value)
+                    )
                 if room_control is not None:
-                    device.attributes[0x4127] = indoor.InFsv2093(value=room_control)
+                    device.attributes[0x4127] = indoor.InFsv2093.parse_payload(
+                        bytes([room_control])
+                    )
                 if thermostat1 or thermostat2 or operation == InOperationMode.AUTO:
                     current, target, write_message = (
                         2.0,
@@ -102,17 +109,121 @@ class FsvEntities(unittest.IsolatedAsyncioTestCase):
             (indoor.InTargetTemperature, 21.0),
             (indoor.InWaterOutletTargetTemperature, 30.0),
         ):
-            device.attributes[message.MESSAGE_ID] = message(value=value)
+            device.attributes[message.MESSAGE_ID] = (
+                message.parse_payload(bytes([value]))
+                if issubclass(message, EnumMessage)
+                else message(value=value)
+            )
         entity = SamsungEhsClimate(coordinator, SUBENTRY)
         self.assertIsNone(entity.target_temperature)
         await entity.async_set_temperature(temperature=22.0)
         device.write_attribute.assert_not_awaited()
-        device.attributes[0x406F] = indoor.DhwReferenceTemperatureMessage(value=0)
+        device.attributes[0x406F] = indoor.DhwReferenceTemperatureMessage.parse_payload(
+            b"\x00"
+        )
         self.assertEqual(entity.target_temperature, 21.0)
         await entity.async_set_temperature(temperature=22.0)
         device.write_attribute.assert_awaited_once_with(
             indoor.InTargetTemperature, 22.0, mode=DataType.REQUEST
         )
+
+    async def test_thermostat_settings_required_before_overrides(self) -> None:
+        """Wait for both settings even when Auto or the other input requests WL."""
+        for missing_message, known_message in (
+            (indoor.InFsv2091UseThermostat1, indoor.InFsv2092UseThermostat2),
+            (indoor.InFsv2092UseThermostat2, indoor.InFsv2091UseThermostat1),
+        ):
+            for null_value, operation in product(
+                (False, True), (InOperationMode.HEAT, InOperationMode.AUTO)
+            ):
+                with self.subTest(
+                    missing=missing_message.MESSAGE_ID,
+                    null_value=null_value,
+                    operation=operation,
+                ):
+                    coordinator = make_coordinator()
+                    device = coordinator.config_entry.runtime_data.client.devices[
+                        "200000"
+                    ]
+                    device.attributes[known_message.MESSAGE_ID] = (
+                        known_message.parse_payload(b"\x01")
+                    )
+                    device.attributes[0x4001] = indoor.InOperationModeMessage(
+                        value=operation
+                    )
+                    device.attributes[0x4248] = indoor.InWaterLawTargetTemperature(
+                        value=2.0
+                    )
+                    if null_value:
+                        device.attributes[missing_message.MESSAGE_ID] = missing_message(
+                            value=None
+                        )
+                    entity = SamsungEhsClimate(coordinator, SUBENTRY)
+                    self.assertIsNone(entity.current_temperature)
+                    self.assertIsNone(entity.target_temperature)
+                    await entity.async_set_temperature(temperature=3.0)
+                    device.write_attribute.assert_not_awaited()
+                    device.attributes[missing_message.MESSAGE_ID] = (
+                        missing_message.parse_payload(b"\x00")
+                    )
+                    self.assertEqual(entity.target_temperature, 2.0)
+                    await entity.async_set_temperature(temperature=3.0)
+                    device.write_attribute.assert_awaited_once_with(
+                        indoor.InWaterLawTargetTemperature, 3.0, mode=DataType.REQUEST
+                    )
+
+    async def test_operation_and_reference_requirements(self) -> None:
+        """Require a reference only for direct Heat/Cool temperature control."""
+        cases = (
+            (0, None, None),
+            (0, InOperationMode.FAN, None),
+            (0, InOperationMode.HEAT, None),
+            (0, InOperationMode.COOL, None),
+            (0, InOperationMode.AUTO, 2.0),
+            (1, None, 2.0),
+            (1, InOperationMode.FAN, 2.0),
+        )
+        for thermostat, operation, expected in cases:
+            for null_reference in (False, True):
+                with self.subTest(
+                    thermostat=thermostat,
+                    operation=operation,
+                    null_reference=null_reference,
+                ):
+                    coordinator = make_coordinator()
+                    device = coordinator.config_entry.runtime_data.client.devices[
+                        "200000"
+                    ]
+                    device.attributes[0x4095] = (
+                        indoor.InFsv2091UseThermostat1.parse_payload(
+                            bytes([thermostat])
+                        )
+                    )
+                    device.attributes[0x4096] = (
+                        indoor.InFsv2092UseThermostat2.parse_payload(b"\x00")
+                    )
+                    device.attributes[0x4248] = indoor.InWaterLawTargetTemperature(
+                        value=2.0
+                    )
+                    if operation is not None:
+                        device.attributes[0x4001] = indoor.InOperationModeMessage(
+                            value=operation
+                        )
+                    if null_reference:
+                        device.attributes[0x406F] = (
+                            indoor.DhwReferenceTemperatureMessage(value=None)
+                        )
+                    entity = SamsungEhsClimate(coordinator, SUBENTRY)
+                    self.assertEqual(entity.target_temperature, expected)
+                    await entity.async_set_temperature(temperature=3.0)
+                    if expected is None:
+                        device.write_attribute.assert_not_awaited()
+                    else:
+                        device.write_attribute.assert_awaited_once_with(
+                            indoor.InWaterLawTargetTemperature,
+                            3.0,
+                            mode=DataType.REQUEST,
+                        )
 
     async def test_water_law_numbers(self) -> None:
         """Read temperatures and write settings before unsolicited discovery."""
