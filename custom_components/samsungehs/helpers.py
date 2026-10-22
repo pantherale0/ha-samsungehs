@@ -3,8 +3,15 @@
 from typing import Any
 
 from pysamsungnasa.device import NasaDevice
-from pysamsungnasa.protocol.enum import DataType, InOperationMode, SamsungEnum
+from pysamsungnasa.protocol.enum import (
+    DataType,
+    DhwReferenceTemp,
+    InOperationMode,
+    InUseThermostat,
+    SamsungEnum,
+)
 from pysamsungnasa.protocol.factory.messages.indoor import (
+    DhwReferenceTemperatureMessage,
     InFsv2091UseThermostat1,
     InFsv2092UseThermostat2,
     InOperationModeMessage,
@@ -21,31 +28,40 @@ def get_temperature_control_mode(device: NasaDevice) -> str | None:
 
     Modes: target water temperature, target room temperature, water law offset.
     """
-    # Check required attributes are present in device
-    required_messages = [
-        InOperationModeMessage.MESSAGE_ID,
-        InFsv2091UseThermostat1.MESSAGE_ID,
-        InFsv2092UseThermostat2.MESSAGE_ID,
+    thermostat_settings = [
+        device.attributes.get(message.MESSAGE_ID)
+        for message in (InFsv2091UseThermostat1, InFsv2092UseThermostat2)
     ]
-    if not all(msg in device.attributes for msg in required_messages):
+    operation = device.attributes.get(InOperationModeMessage.MESSAGE_ID)
+    reference = device.attributes.get(DhwReferenceTemperatureMessage.MESSAGE_ID)
+
+    if any(setting is None or setting.VALUE is None for setting in thermostat_settings):
         return None
-    if device.attributes[InOperationModeMessage.MESSAGE_ID].VALUE in [
+
+    if any(
+        setting.VALUE is not InUseThermostat.NOT_USED for setting in thermostat_settings
+    ) or (operation is not None and operation.VALUE == InOperationMode.AUTO):
+        return "water_law_offset"
+
+    if operation is None or operation.VALUE not in (
         InOperationMode.HEAT,
         InOperationMode.COOL,
-    ]:
-        return "target_water_temperature"
-    if (
-        device.attributes[InOperationModeMessage.MESSAGE_ID].VALUE
-        == InOperationMode.AUTO
     ):
-        return "water_law_offset"
-    return "target_room_temperature"
+        return None
+
+    if reference is None:
+        return None
+
+    return {
+        DhwReferenceTemp.ROOM: "target_room_temperature",
+        DhwReferenceTemp.WATER_OUT: "target_water_temperature",
+    }.get(reference.VALUE)
 
 
 async def async_set_space_heating_target_temperature(
     device: NasaDevice, temperature: float
 ) -> None:
-    """Set target temperature for space heating mode based on the current control mode."""
+    """Set the space heating target using the configured temperature control."""
     if get_temperature_control_mode(device) == "target_water_temperature":
         await device.write_attribute(
             InWaterOutletTargetTemperature, temperature, mode=DataType.REQUEST

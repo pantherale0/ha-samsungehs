@@ -29,3 +29,5 @@ max-complexity = 25
 "scripts/check_commits.py" = ["INP001", "S603", "S607", "T201"]
 # The dependency-free test runner uses unittest assertions and local subprocesses.
 "tests/test_check_commits.py" = ["PT009", "S603", "S607"]
+# Pytest tests use plain assertions against literal expected values.
+"tests/test_fsv_entities.py" = ["S101", "PLR2004"]
