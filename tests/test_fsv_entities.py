@@ -256,6 +256,8 @@ class FsvEntities(unittest.IsolatedAsyncioTestCase):
     async def test_select_enum_values(self) -> None:
         """Round trip one-based and zero-based enums without index arithmetic."""
         cases = (
+            ("temperature_reference", 0x406F, 0, "room"),
+            ("temperature_reference", 0x406F, 1, "water out"),
             ("water_law_type_heating", 0x4093, 1, "floor"),
             ("water_law_type_heating", 0x4093, 2, "fcu"),
             ("use_thermostat_zone_1", 0x4095, 0, "not used"),

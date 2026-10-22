@@ -318,6 +318,13 @@
             }
         },
         "select": {
+            "temperature_reference": {
+                "name": "Temperature Reference",
+                "state": {
+                    "room": "Room Temperature",
+                    "water out": "Water Outlet Temperature"
+                }
+            },
             "water_law_type_heating": {
                 "name": "Water Law Type Heating",
                 "state": {

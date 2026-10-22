@@ -11,6 +11,7 @@ from homeassistant.components.select import SelectEntity, SelectEntityDescriptio
 from pysamsungnasa.helpers import Address
 from pysamsungnasa.protocol.enum import (
     AddressClass,
+    DhwReferenceTemp,
     InFsv3042DayOfWeek,
     InUseThermostat,
     SamsungEnum,
@@ -20,6 +21,7 @@ from pysamsungnasa.protocol.enum import (
     InFsv4053 as InFsv4053Enum,
 )
 from pysamsungnasa.protocol.factory.messages.indoor import (
+    DhwReferenceTemperatureMessage,
     InFsv2041WaterLawTypeHeating,
     InFsv2091UseThermostat1,
     InFsv2092UseThermostat2,
@@ -45,6 +47,7 @@ if TYPE_CHECKING:
 class SamsungEHSSelectKey(StrEnum):
     """Samsung EHS Select Keys."""
 
+    TEMPERATURE_REFERENCE = "temperature_reference"
     USE_THERMOSTAT_ZONE_1 = "use_thermostat_zone_1"
     USE_THERMOSTAT_ZONE_2 = "use_thermostat_zone_2"
     WATER_LAW_TYPE_HEATING = "water_law_type_heating"
@@ -65,6 +68,13 @@ class SamsungEHSSelectEntityDescription(SelectEntityDescription):
 
 
 SELECTS: tuple[SamsungEHSSelectEntityDescription, ...] = (
+    SamsungEHSSelectEntityDescription(
+        key=SamsungEHSSelectKey.TEMPERATURE_REFERENCE,
+        translation_key=SamsungEHSSelectKey.TEMPERATURE_REFERENCE,
+        message=DhwReferenceTemperatureMessage,
+        options=DhwReferenceTemp,
+        requires_read=True,
+    ),
     SamsungEHSSelectEntityDescription(
         key=SamsungEHSSelectKey.WATER_LAW_TYPE_HEATING,
         translation_key=SamsungEHSSelectKey.WATER_LAW_TYPE_HEATING,
