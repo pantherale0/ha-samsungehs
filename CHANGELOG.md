@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.2.0](https://github.com/pantherale0/ha-samsungehs/compare/v1.1.1...v1.2.0) (2026-10-22)
+
+
+### Features
+
+* Add FSV entity support and improve temperature control logic ([#11](https://github.com/pantherale0/ha-samsungehs/issues/11)) ([2d5b80d](https://github.com/pantherale0/ha-samsungehs/commit/2d5b80dd0e56587969ad8e4290d68f4660af9493))
+
 ## [1.1.1](https://github.com/pantherale0/ha-samsungehs/compare/v1.1.0...v1.1.1) (2026-10-11)
 
 
