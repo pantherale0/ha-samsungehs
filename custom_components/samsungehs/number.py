@@ -18,8 +18,12 @@ from pysamsungnasa.protocol.enum import (
     AddressClass,
 )
 from pysamsungnasa.protocol.factory.messages.indoor import (
+    InFsv2011OutdoorTempHeatingMax,
+    InFsv2012OutdoorTempHeatingMin,
     InFsv2021WaterOutTempWL1HeatingMax,
     InFsv2022WaterOutTempWL1HeatingMin,
+    InFsv2031WaterOutTempWL2HeatingMax,
+    InFsv2032WaterOutTempWL2HeatingMin,
     InFsv3025,
     InFsv3043,
     InFsv3044,
@@ -72,6 +76,10 @@ class SamsungEHSNumberKey(StrEnum):
     DHW_DISINFECTION_MAX_HOURS = "dhw_disinfection_max_hours"
     DHW_MAX_OPERATION_TIME = "dhw_max_operation_time"
     INVERTER_PUMP_TARGET_DELTA_T = "inverter_pump_target_delta_t"
+    FSV2011_OUTDOOR_TEMP_HEATING_MAX = "fsv2011_outdoor_temp_heating_max"
+    FSV2012_OUTDOOR_TEMP_HEATING_MIN = "fsv2012_outdoor_temp_heating_min"
+    FSV2031_WATER_OUT_TEMP_WL2_HEATING_MAX = "fsv2031_water_out_temp_wl2_heating_max"
+    FSV2032_WATER_OUT_TEMP_WL2_HEATING_MIN = "fsv2032_water_out_temp_wl2_heating_min"
     FSV2021_WATER_OUT_TEMP_WL1_HEATING_MAX = "fsv2021_water_out_temp_wl1_heating_max"
     FSV2022_WATER_OUT_TEMP_WL1_HEATING_MIN = "fsv2022_water_out_temp_wl1_heating_min"
     FSV5011_OUTING_MODE_WATER_OUT_TEMP_COOLING = (
@@ -215,6 +223,46 @@ NUMBERS: tuple[SamsungEHSNumberEntityDescription, ...] = (
         native_min_value=5.0,
         native_max_value=95.0,
         native_unit_of_measurement=UnitOfTime.MINUTES,
+    ),
+    SamsungEHSNumberEntityDescription(
+        key=SamsungEHSNumberKey.FSV2011_OUTDOOR_TEMP_HEATING_MAX,
+        message=InFsv2011OutdoorTempHeatingMax,
+        translation_key=SamsungEHSNumberKey.FSV2011_OUTDOOR_TEMP_HEATING_MAX,
+        requires_read=True,
+        native_step=1.0,
+        native_min_value=-20.0,
+        native_max_value=5.0,
+        native_unit_of_measurement=UnitOfTemperature.CELSIUS,
+    ),
+    SamsungEHSNumberEntityDescription(
+        key=SamsungEHSNumberKey.FSV2012_OUTDOOR_TEMP_HEATING_MIN,
+        message=InFsv2012OutdoorTempHeatingMin,
+        translation_key=SamsungEHSNumberKey.FSV2012_OUTDOOR_TEMP_HEATING_MIN,
+        requires_read=True,
+        native_step=1.0,
+        native_min_value=10.0,
+        native_max_value=20.0,
+        native_unit_of_measurement=UnitOfTemperature.CELSIUS,
+    ),
+    SamsungEHSNumberEntityDescription(
+        key=SamsungEHSNumberKey.FSV2031_WATER_OUT_TEMP_WL2_HEATING_MAX,
+        message=InFsv2031WaterOutTempWL2HeatingMax,
+        translation_key=SamsungEHSNumberKey.FSV2031_WATER_OUT_TEMP_WL2_HEATING_MAX,
+        requires_read=True,
+        native_step=1.0,
+        native_min_value=17.0,
+        native_max_value=65.0,
+        native_unit_of_measurement=UnitOfTemperature.CELSIUS,
+    ),
+    SamsungEHSNumberEntityDescription(
+        key=SamsungEHSNumberKey.FSV2032_WATER_OUT_TEMP_WL2_HEATING_MIN,
+        message=InFsv2032WaterOutTempWL2HeatingMin,
+        translation_key=SamsungEHSNumberKey.FSV2032_WATER_OUT_TEMP_WL2_HEATING_MIN,
+        requires_read=True,
+        native_step=1.0,
+        native_min_value=17.0,
+        native_max_value=65.0,
+        native_unit_of_measurement=UnitOfTemperature.CELSIUS,
     ),
     SamsungEHSNumberEntityDescription(
         key=SamsungEHSNumberKey.FSV2021_WATER_OUT_TEMP_WL1_HEATING_MAX,

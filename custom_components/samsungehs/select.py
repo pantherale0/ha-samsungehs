@@ -164,9 +164,14 @@ class SamsungEHSSelect(SamsungEhsEntity, SelectEntity):
         value = self._device.attributes[self._message.MESSAGE_ID].VALUE
         if value is None:
             return None
-        if self.options and isinstance(value, int) and 0 <= value < len(self.options):
-            return self.options[value]
-        return str(value)
+        enum_class = self.entity_description.options
+        if enum_class is None:
+            return str(value)
+        try:
+            member = enum_class(value)
+        except ValueError:
+            return None
+        return member.name.replace("_", " ").lower()
 
     @property
     def options(self) -> list[str]:
@@ -179,10 +184,7 @@ class SamsungEHSSelect(SamsungEhsEntity, SelectEntity):
         """Change the selected option."""
         if self._message is None or self.entity_description.options is None:
             return
-        try:
-            value = self.options.index(option.lower())
-            # Convert int to enum
-            value = self.entity_description.options(value)
-            await self._device.write_attribute(self._message, value=value)
-        except ValueError:
-            pass
+        for member in self.entity_description.options:
+            if member.name.replace("_", " ").lower() == option.lower():
+                await self._device.write_attribute(self._message, value=member)
+                return

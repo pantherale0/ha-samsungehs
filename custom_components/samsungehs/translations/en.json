@@ -216,7 +216,7 @@
         },
         "switch": {
             "frequency_ratio_control": {
-                "name": "Frequency Ratio Control (FSV5051)"
+                "name": "FSV5051 Frequency Ratio Control"
             },
             "outing_mode": {
                 "name": "Outing Mode"
@@ -246,6 +246,18 @@
             },
             "dhw_max_operation_time": {
                 "name": "DHW Max Operation Time"
+            },
+            "fsv2011_outdoor_temp_heating_max": {
+                "name": "FSV2011 Outdoor Temp Heating Max"
+            },
+            "fsv2012_outdoor_temp_heating_min": {
+                "name": "FSV2012 Outdoor Temp Heating Min"
+            },
+            "fsv2031_water_out_temp_wl2_heating_max": {
+                "name": "FSV2031 Water Out Temp WL2 Heating Max"
+            },
+            "fsv2032_water_out_temp_wl2_heating_min": {
+                "name": "FSV2032 Water Out Temp WL2 Heating Min"
             },
             "fsv2021_water_out_temp_wl1_heating_max": {
                 "name": "FSV2021 Water Out Temp WL1 Heating Max"
