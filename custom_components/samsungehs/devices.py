@@ -15,7 +15,7 @@ async def async_trigger_discovered_device(
     """Create a discovered device in Home Assistant from a NasaDevice."""
     # Register device in the config entry options and reload the entry
     address = device.address
-    if address in entry.options.get("device_addresses", []):
+    if address in entry.options.get("device_addresses", []) or address.startswith("62"):
         return
     device_addresses = list(entry.options.get("device_addresses", []))
     device_addresses.append(address)
