@@ -29,6 +29,7 @@ from pysamsungnasa.protocol.factory.messages.indoor import (
     InWaterOutletTargetTemperature,
     InFsv2091UseThermostat1,
     InFsv2092UseThermostat2,
+    DhwReferenceTemperatureMessage,
 )
 from pysamsungnasa.protocol.factory.messages.outdoor import (
     OutdoorDefrostStatus,
@@ -252,4 +253,5 @@ class SamsungEhsClimate(SamsungEhsEntity, ClimateEntity):
         self._add_first_run_message(InWaterLawTargetTemperature)
         self._add_first_run_message(InFsv2091UseThermostat1)
         self._add_first_run_message(InFsv2092UseThermostat2)
+        self._add_first_run_message(DhwReferenceTemperatureMessage)
         return await super().async_added_to_hass()
