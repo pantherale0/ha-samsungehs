@@ -25,7 +25,7 @@ from pysamsungnasa.protocol.factory.messages.indoor import (
     InOperationPowerMessage,
     InRoomTemperature,
     InTargetTemperature,
-    InWaterLawTargetTemperature,
+    InWaterLawOffsetTemperature,
     InWaterOutletTargetTemperature,
     InFsv2091UseThermostat1,
     InFsv2092UseThermostat2,
@@ -120,7 +120,7 @@ class SamsungEhsClimate(SamsungEhsEntity, ClimateEntity):
         elif control_mode == "target_water_temperature":
             value = self.get_attribute(IndoorFlowTemperature)
         elif control_mode == "water_law_offset":
-            value = self.get_attribute(InWaterLawTargetTemperature)
+            value = self.get_attribute(InWaterLawOffsetTemperature)
         else:
             return None
         return (
@@ -138,7 +138,7 @@ class SamsungEhsClimate(SamsungEhsEntity, ClimateEntity):
         elif control_mode == "target_water_temperature":
             value = self.get_attribute(InWaterOutletTargetTemperature)
         elif control_mode == "water_law_offset":
-            value = self.get_attribute(InWaterLawTargetTemperature)
+            value = self.get_attribute(InWaterLawOffsetTemperature)
         else:
             return None
         return (
@@ -250,7 +250,7 @@ class SamsungEhsClimate(SamsungEhsEntity, ClimateEntity):
         self._add_first_run_message(IndoorFlowTemperature)
         self._add_first_run_message(InTargetTemperature)
         self._add_first_run_message(InWaterOutletTargetTemperature)
-        self._add_first_run_message(InWaterLawTargetTemperature)
+        self._add_first_run_message(InWaterLawOffsetTemperature)
         self._add_first_run_message(InFsv2091UseThermostat1)
         self._add_first_run_message(InFsv2092UseThermostat2)
         self._add_first_run_message(DhwReferenceTemperatureMessage)

@@ -57,7 +57,7 @@ def test_climate_control_priority(
         (indoor.InTargetTemperature, 21.0),
         (indoor.IndoorFlowTemperature, 33.5),
         (indoor.InWaterOutletTargetTemperature, 30.0),
-        (indoor.InWaterLawTargetTemperature, 2.0),
+        (indoor.InWaterLawOffsetTemperature, 2.0),
     ):
         device.attributes[message.MESSAGE_ID] = (
             message.parse_payload(bytes([value]))
@@ -67,7 +67,7 @@ def test_climate_control_priority(
     if room_control is not None:
         device.attributes[16679] = indoor.InFsv2093.parse_payload(bytes([room_control]))
     if thermostat1 or thermostat2 or operation == InOperationMode.AUTO:
-        current, target, write_message = (2.0, 2.0, indoor.InWaterLawTargetTemperature)
+        current, target, write_message = (2.0, 2.0, indoor.InWaterLawOffsetTemperature)
     elif reference == 0:
         current, target, write_message = (20.5, 21.0, indoor.InTargetTemperature)
     else:
@@ -136,7 +136,7 @@ def test_thermostat_settings_required_before_overrides(
     device = coordinator.config_entry.runtime_data.client.devices["200000"]
     device.attributes[known_message.MESSAGE_ID] = known_message.parse_payload(b"\x01")
     device.attributes[16385] = indoor.InOperationModeMessage(value=operation)
-    device.attributes[16968] = indoor.InWaterLawTargetTemperature(value=2.0)
+    device.attributes[16968] = indoor.InWaterLawOffsetTemperature(value=2.0)
     if null_value:
         device.attributes[missing_message.MESSAGE_ID] = missing_message(value=None)
     entity = SamsungEhsClimate(coordinator, SUBENTRY)
@@ -150,7 +150,7 @@ def test_thermostat_settings_required_before_overrides(
     assert entity.target_temperature == 2.0
     asyncio.run(entity.async_set_temperature(temperature=3.0))
     device.write_attribute.assert_awaited_once_with(
-        indoor.InWaterLawTargetTemperature, 3.0, mode=DataType.REQUEST
+        indoor.InWaterLawOffsetTemperature, 3.0, mode=DataType.REQUEST
     )
 
 
@@ -181,7 +181,7 @@ def test_operation_and_reference_requirements(
         bytes([thermostat])
     )
     device.attributes[16534] = indoor.InFsv2092UseThermostat2.parse_payload(b"\x00")
-    device.attributes[16968] = indoor.InWaterLawTargetTemperature(value=2.0)
+    device.attributes[16968] = indoor.InWaterLawOffsetTemperature(value=2.0)
     if operation is not None:
         device.attributes[16385] = indoor.InOperationModeMessage(value=operation)
     if null_reference:
@@ -193,7 +193,7 @@ def test_operation_and_reference_requirements(
         device.write_attribute.assert_not_awaited()
     else:
         device.write_attribute.assert_awaited_once_with(
-            indoor.InWaterLawTargetTemperature, 3.0, mode=DataType.REQUEST
+            indoor.InWaterLawOffsetTemperature, 3.0, mode=DataType.REQUEST
         )
 
 

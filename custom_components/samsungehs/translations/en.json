@@ -114,6 +114,9 @@
             "water_law_target_temperature": {
                 "name": "Water Law Target Temperature"
             },
+            "water_law_offset": {
+                "name": "Water Law Offset"
+            },
             "compressor_dhw_standard_temperature": {
                 "name": "Compressor DHW Standard Temperature"
             },
