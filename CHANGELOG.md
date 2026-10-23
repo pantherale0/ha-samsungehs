@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.2.1](https://github.com/pantherale0/ha-samsungehs/compare/v1.2.0...v1.2.1) (2026-10-23)
+
+
+### Bug Fixes
+
+* requirements.txt to reduce vulnerabilities ([#14](https://github.com/pantherale0/ha-samsungehs/issues/14)) ([8fac5b7](https://github.com/pantherale0/ha-samsungehs/commit/8fac5b74acd532fa85c7b6b2a3e390ec84b2a897))
+
 ## [1.2.0](https://github.com/pantherale0/ha-samsungehs/compare/v1.1.1...v1.2.0) (2026-10-22)
 
 
