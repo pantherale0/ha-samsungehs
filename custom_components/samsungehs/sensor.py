@@ -76,6 +76,7 @@ class SamsungEhsSensorKey(StrEnum):
     FLOW_RATE = "flow_rate"
     FLOW_SETPOINT_TEMPERATURE = "flow_set_point_temperature"
     WATER_LAW_TARGET_TEMPERATURE = "water_law_target_temperature"
+    WATER_LAW_OFFSET = "water_law_offset"
     COMPRESSOR_DHW_STANDARD_TEMPERATURE = "compressor_dhw_standard_temperature"
     DHW_MIN_OPERATING_TIME = "dhw_min_operating_time"
     DHW_MAX_OPERATING_TIME = "dhw_max_operating_time"
@@ -331,6 +332,14 @@ INDOOR_ENTITY_DESCRIPTIONS: tuple[SamsungEhsSensorEntityDescription, ...] = (
         device_class=SensorDeviceClass.TEMPERATURE,
         state_class=SensorStateClass.MEASUREMENT,
         message=indoor.InWaterLawTargetTemperature,
+    ),
+    SamsungEhsSensorEntityDescription(
+        key=SamsungEhsSensorKey.WATER_LAW_OFFSET,
+        translation_key=SamsungEhsSensorKey.WATER_LAW_OFFSET,
+        native_unit_of_measurement=UnitOfTemperature.CELSIUS,
+        device_class=SensorDeviceClass.TEMPERATURE_DELTA,
+        state_class=SensorStateClass.MEASUREMENT,
+        message=indoor.InWaterLawOffsetTemperature,
     ),
     SamsungEhsSensorEntityDescription(
         key=SamsungEhsSensorKey.COMPRESSOR_DHW_STANDARD_TEMPERATURE,
