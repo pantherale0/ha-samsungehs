@@ -16,7 +16,7 @@ from pysamsungnasa.protocol.factory.messages.indoor import (
     InFsv2092UseThermostat2,
     InOperationModeMessage,
     InTargetTemperature,
-    InWaterLawTargetTemperature,
+    InWaterLawOffsetTemperature,
     InWaterOutletTargetTemperature,
 )
 from pysamsungnasa.protocol.factory.types import BaseMessage
@@ -68,7 +68,7 @@ async def async_set_space_heating_target_temperature(
         )
     elif get_temperature_control_mode(device) == "water_law_offset":
         await device.write_attribute(
-            InWaterLawTargetTemperature, temperature, mode=DataType.REQUEST
+            InWaterLawOffsetTemperature, temperature, mode=DataType.REQUEST
         )
     elif get_temperature_control_mode(device) == "target_room_temperature":
         await device.write_attribute(
