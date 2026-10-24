@@ -21,7 +21,7 @@ from homeassistant.const import (
     UnitOfTemperature,
 )
 from pysamsungnasa.helpers import Address
-from pysamsungnasa.protocol.enum import AddressClass
+from pysamsungnasa.protocol.enum import AddressClass, In3WayValve
 from pysamsungnasa.protocol.factory.messages import basic, indoor, outdoor
 
 from .entity import SamsungEhsEntity
@@ -79,6 +79,8 @@ class SamsungEhsSensorKey(StrEnum):
     FLOW_SETPOINT_TEMPERATURE = "flow_set_point_temperature"
     WATER_LAW_TARGET_TEMPERATURE = "water_law_target_temperature"
     WATER_LAW_OFFSET = "water_law_offset"
+    THREE_WAY_VALVE = "three_way_valve"
+    DHW_TANK_TEMPERATURE = "dhw_tank_temperature"
     COMPRESSOR_DHW_STANDARD_TEMPERATURE = "compressor_dhw_standard_temperature"
     DHW_MIN_OPERATING_TIME = "dhw_min_operating_time"
     DHW_MAX_OPERATING_TIME = "dhw_max_operating_time"
@@ -94,6 +96,17 @@ class SamsungEhsSensorEntityDescription(SensorEntityDescription):
     message: type[BaseMessage] | None = None
     value_fn: Callable[[NasaDevice], Any] | None = None
     enabled_message: type[BaseMessage] | None = None
+
+
+def _three_way_valve(device: NasaDevice) -> str | None:
+    """Return "room" or "tank" from the 3-way valve message (0x4067)."""
+    attribute = device.attributes.get(indoor.In3WayValveMessage.MESSAGE_ID)
+    if attribute is None or attribute.VALUE is None:
+        return None
+    try:
+        return In3WayValve(attribute.VALUE).name.lower()
+    except ValueError:
+        return None
 
 
 ALL_ENTITY_DESCRIPTIONS: tuple[SamsungEhsSensorEntityDescription, ...] = (
@@ -366,6 +379,22 @@ INDOOR_ENTITY_DESCRIPTIONS: tuple[SamsungEhsSensorEntityDescription, ...] = (
         message=indoor.InWaterLawOffsetTemperature,
     ),
     SamsungEhsSensorEntityDescription(
+        key=SamsungEhsSensorKey.THREE_WAY_VALVE,
+        translation_key=SamsungEhsSensorKey.THREE_WAY_VALVE,
+        device_class=SensorDeviceClass.ENUM,
+        options=[valve.name.lower() for valve in In3WayValve],
+        message=indoor.In3WayValveMessage,
+        value_fn=_three_way_valve,
+    ),
+    SamsungEhsSensorEntityDescription(
+        key=SamsungEhsSensorKey.DHW_TANK_TEMPERATURE,
+        translation_key=SamsungEhsSensorKey.DHW_TANK_TEMPERATURE,
+        native_unit_of_measurement=UnitOfTemperature.CELSIUS,
+        device_class=SensorDeviceClass.TEMPERATURE,
+        state_class=SensorStateClass.MEASUREMENT,
+        message=indoor.DhwCurrentTemperature,
+    ),
+    SamsungEhsSensorEntityDescription(
         key=SamsungEhsSensorKey.COMPRESSOR_DHW_STANDARD_TEMPERATURE,
         translation_key=SamsungEhsSensorKey.COMPRESSOR_DHW_STANDARD_TEMPERATURE,
         native_unit_of_measurement=UnitOfTemperature.CELSIUS,
@@ -473,6 +502,8 @@ class SamsungEhsSensor(SamsungEhsEntity, SensorEntity):
         """Return the native value."""
         if self._device is None:
             return None
+        if self.entity_description.value_fn is not None:
+            return self.entity_description.value_fn(self._device)
         if self.entity_description.message is not None:
             if self.entity_description.message.MESSAGE_ID in self._device.attributes:
                 val = self._device.attributes[
@@ -482,9 +513,7 @@ class SamsungEhsSensor(SamsungEhsEntity, SensorEntity):
                     return None
                 return val
             return None
-        if self.entity_description.value_fn is None:
-            return None
-        return self.entity_description.value_fn(self._device)
+        return None
 
     @property
     def available(self) -> bool:
