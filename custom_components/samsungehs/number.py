@@ -12,7 +12,7 @@ from homeassistant.components.number import (
     NumberEntityDescription,
     NumberMode,
 )
-from homeassistant.const import PERCENTAGE, UnitOfTemperature, UnitOfTime
+from homeassistant.const import PERCENTAGE, UnitOfPower, UnitOfTemperature, UnitOfTime
 from pysamsungnasa.helpers import Address
 from pysamsungnasa.protocol.enum import (
     AddressClass,
@@ -29,6 +29,7 @@ from pysamsungnasa.protocol.factory.messages.indoor import (
     InFsv3044,
     InFsv3045,
     InFsv3046,
+    InFsv3083,
     InFsv4013,
     InFsv4052,
     InFsv5011Message,
@@ -82,6 +83,7 @@ class SamsungEHSNumberKey(StrEnum):
     FSV2032_WATER_OUT_TEMP_WL2_HEATING_MIN = "fsv2032_water_out_temp_wl2_heating_min"
     FSV2021_WATER_OUT_TEMP_WL1_HEATING_MAX = "fsv2021_water_out_temp_wl1_heating_max"
     FSV2022_WATER_OUT_TEMP_WL1_HEATING_MIN = "fsv2022_water_out_temp_wl1_heating_min"
+    FSV3083_BSH_CAPACITY = "fsv3083_bsh_capacity"
     FSV5011_OUTING_MODE_WATER_OUT_TEMP_COOLING = (
         "fsv5011_outing_mode_water_out_temp_cooling"
     )
@@ -209,6 +211,16 @@ NUMBERS: tuple[SamsungEHSNumberEntityDescription, ...] = (
         native_min_value=1.0,
         native_max_value=24.0,
         native_unit_of_measurement=UnitOfTime.HOURS,
+    ),
+    SamsungEHSNumberEntityDescription(
+        key=SamsungEHSNumberKey.FSV3083_BSH_CAPACITY,
+        message=InFsv3083,
+        translation_key=SamsungEHSNumberKey.FSV3083_BSH_CAPACITY,
+        requires_read=True,
+        native_step=1.0,
+        native_min_value=1.0,
+        native_max_value=6.0,
+        native_unit_of_measurement=UnitOfPower.KILO_WATT,
     ),
     SamsungEHSNumberEntityDescription(
         key=SamsungEHSNumberKey.DHW_MAX_OPERATION_TIME,
