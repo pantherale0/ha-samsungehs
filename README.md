@@ -8,7 +8,7 @@
 
 ## Overview
 
-The Samsung EHS integration brings control and monitoring of Samsung Environmental Heat System (EHS) devices to Home Assistant. This integration communicates with Samsung heat pump and heat recovery ventilation systems over the local network using the NASА protocol.
+The Samsung EHS integration brings control and monitoring of Samsung Environmental Heat System (EHS) devices to Home Assistant. This integration communicates with Samsung heat pump and heat recovery ventilation systems using the NASА protocol over a local serial connection or a network serial bridge.
 
 ## Why does this exist?
 
@@ -143,7 +143,7 @@ data:
 
 ## Hardware Configuration
 
-Samsung EHS devices communicate via the NASА protocol over RS485/serial connection. Since most systems won't have direct serial access, you'll need to set up a UART bridge to connect your Home Assistant instance to the Samsung EHS device.
+Samsung EHS devices communicate via the NASА protocol over RS485. You can connect a USB-to-RS485 adapter directly to the Home Assistant host, use a serial proxy available in Home Assistant, or use a network RS485 adapter such as a Waveshare RS485-to-Ethernet device or an ESPHome UART bridge. An ESP32 is only needed if you choose the ESPHome bridge option.
 
 ### Required Hardware
 
@@ -153,12 +153,14 @@ To establish communication, you will need:
     - M5Stack with [RS485 Base](https://www.aliexpress.com/item/1005005912210853.html)
     - Any ESP32-based device with RS485 module
     - Raspberry Pi with RS485 HAT
+    - USB-to-RS485 adapter connected to the Home Assistant host
+    - Waveshare RS485-to-Ethernet adapter
 
-2. **Network connectivity** - The bridge device must be on the same network as Home Assistant
+2. **Connection to Home Assistant** - A local adapter must be accessible to the Home Assistant runtime. A network adapter or proxy must be reachable from Home Assistant on its configured address and port.
 
 ### Setting Up with ESPHome
 
-The recommended approach is to use [ESPHome](https://esphome.io/) with the [esphome-stream-server](https://github.com/oxan/esphome-stream-server) component:
+For an ESPHome TCP bridge, use [ESPHome](https://esphome.io/) with the [esphome-stream-server](https://github.com/oxan/esphome-stream-server) component:
 
 1. **Flash ESPHome to your bridge device** (e.g., M5Stack):
     - Install [ESPHome](https://esphome.io/guides/installing_esphome.html)
@@ -175,6 +177,9 @@ The recommended approach is to use [ESPHome](https://esphome.io/) with the [esph
        tx_pin: GPIO17
        rx_pin: GPIO16
        baud_rate: 9600
+       data_bits: 8
+       parity: EVEN
+       stop_bits: 1
 
     external_components:
        - source: github://oxan/esphome-stream-server
@@ -189,7 +194,7 @@ The recommended approach is to use [ESPHome](https://esphome.io/) with the [esph
     - Connect the RS485 A/B lines to your Samsung EHS device
     - Ensure proper termination resistors if needed for your installation
 
-4. **Note the device's IP address** - This will be used in the Home Assistant configuration
+4. **Note the device's IP address and stream server port** - For example, enter `socket://192.168.1.50:8000` manually in the integration's serial port selector. Adjust the GPIO pins for your hardware and include the board/platform, network, and other settings required by your ESPHome device.
 
 ### Connecting to Samsung EHS Device
 
@@ -229,7 +234,7 @@ This option eliminates the need for separate external power and keeps all connec
 
 Once your UART bridge is set up:
 - Your Samsung EHS device communicates via RS485 to the bridge hardware
-- The bridge converts this to TCP/IP and exposes it on port 8000
+- The bridge converts this to TCP/IP on its configured port (8000 in the ESPHome example)
 - Home Assistant connects to the bridge via your local network
 
 ## Installation
@@ -252,15 +257,43 @@ Once your UART bridge is set up:
 
 ### Via UI
 
-The integration uses the configuration flow for easy setup:
+The integration uses Home Assistant's `SerialPortSelector` for the **Port** field. It supports local serial ports and serial proxies exposed by Home Assistant. You can override the selection with a manually entered device path or connection URL. There are no separate Host and Port fields.
 
-1. Go to Settings → Devices & Services → Create Integration
-2. Search for "Samsung EHS"
-3. Enter the following information:
-    - **Host**: The IP address or hostname of your RS485 bridge / ethernet adapter
-    - **Port**: The port number to access the bridge
+1. Go to Settings → Devices & Services → Add Integration.
+2. Search for "Samsung EHS".
+3. In **Port**, select your local serial adapter or an available serial proxy.
+4. To override the selection or use a network adapter that is not listed, open the selector, choose **Enter manually**, and enter the full device path or URL from the examples below.
+5. Submit the form. The integration will discover connected Samsung devices and set up their entities.
 
-The integration will automatically discover and set up all connected devices and their entities.
+The integration uses `pysamsungnasa` for the Samsung protocol and the `serialx` library under the hood for serial connections. Manual values must be device paths or URLs supported by that library; a bare IP address is not sufficient for a TCP adapter. Configure an RS485 bridge's UART for **9600 baud, 8 data bits, even parity, 1 stop bit (8E1)**.
+
+### Common connection examples
+
+These are values or selections for the UI's **Port** field, not `configuration.yaml` entries. Replace the example paths, addresses, and ports with your own.
+
+| Setup | Port selection or manual value | Required setup |
+|---|---|---|
+| Local USB-to-RS485 adapter | Select the adapter, or enter `/dev/serial/by-id/usb-YOUR_ADAPTER_ID` | Make the device accessible to Home Assistant; use its actual persistent path where possible. |
+| Local serial device without a persistent path | `/dev/ttyUSB0` | Ensure the path exists inside the Home Assistant runtime; device numbering may change after a restart. |
+| Home Assistant serial proxy | Select the proxy's serial port from the selector | Set up the proxy in Home Assistant first so its port is available. |
+| Waveshare RS485-to-Ethernet adapter | `socket://192.168.1.60:8899` | Configure the adapter as a TCP server providing a transparent serial stream; use its actual listening port. |
+| ESPHome stream server from the example above | `socket://192.168.1.50:8000` | Run the UART stream server on port 8000. |
+| TCP bridge using a hostname | `socket://samsung-ehs-bridge.local:8000` | Ensure Home Assistant can resolve that hostname and reach the port. |
+
+### Waveshare RS485-to-Ethernet setup
+
+A Waveshare adapter can connect directly to the integration over TCP; no ESP32 or virtual COM port is required.
+
+1. Set the adapter to **TCP server** mode with transparent serial forwarding and note its IP address and listening port. Use raw TCP rather than Modbus TCP mode.
+2. Set its serial parameters to **9600 baud, 8E1**.
+3. Close other clients connected to the adapter, including virtual COM software, S-NET Pro, or NASAMonitor. An existing connection can block Home Assistant from connecting.
+4. Add Samsung EHS, choose **Enter manually** in the **Port** selector, and enter `socket://IP_ADDRESS:PORT`, for example `socket://192.168.1.60:8899`.
+
+See [issue #18](https://github.com/pantherale0/ha-samsungehs/issues/18) for the original setup question.
+
+### Changing an existing connection
+
+Open the Samsung EHS integration entry's menu in Settings → Devices & Services and choose **Reconfigure** to select another port, proxy, or manual URL. Existing entries from the older Host/Port configuration are migrated automatically to a `socket://HOST:PORT` value.
 
 ## Supported Devices
 
@@ -275,9 +308,9 @@ This integration supports Samsung EHS systems that communicate via the NASА pro
 
 ## How It Works
 
-The integration uses the `pysamsungnasa` library to communicate with Samsung EHS devices over a local network connection. It:
+The integration uses `pysamsungnasa` for the Samsung NASА protocol and `serialx` for the underlying serial transport. It:
 
-1. Establishes a TCP connection to the EHS device
+1. Opens the selected local serial port, serial proxy, or manually configured network serial connection
 2. Continuously polls the device for status updates (every 15 seconds by default)
 3. Translates device-specific protocols into Home Assistant entities
 4. Provides climate control, water heater management, and sensor monitoring capabilities
@@ -288,15 +321,18 @@ All communication is local and does not require internet connectivity.
 
 ### Device Not Found
 
-- Ensure your device is connected to the same network as Home Assistant
-- Verify the IP address and port number are correct
-- Check that your device's firewall allows connections on the configured port
+- For a local adapter, check that the selected device path exists and Home Assistant has permission to access it. For Container or VM installations, pass the serial device through to the Home Assistant runtime.
+- For a serial proxy, check that it is online and its serial port is available in Home Assistant.
+- For a TCP adapter, use **Enter manually** with `socket://HOST:PORT`, verify the address and listening port, and check that Home Assistant can reach it through any firewall.
+- Check that the bridge is configured for 9600 baud, 8E1 and connected to the correct RS485 terminals.
 
 ### Connection Issues
 
 - Restart the integration from Settings → Devices & Services
 - Check the Home Assistant logs for error messages
 - Ensure your device is powered on and responsive
+- Close competing connections to the serial adapter, including virtual COM clients and diagnostic software
+- For a Waveshare adapter, confirm TCP server / transparent serial mode rather than Modbus TCP mode
 
 ### Missing Entities
 
