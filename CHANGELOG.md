@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.2.1](https://github.com/pantherale0/ha-samsungehs/compare/v1.2.0...v1.2.1) (2026-10-24)
+
+
+### Bug Fixes
+
+* read the water law target from 0x427F and add a water law offset sensor ([#17](https://github.com/pantherale0/ha-samsungehs/issues/17)) ([13ad29c](https://github.com/pantherale0/ha-samsungehs/commit/13ad29c708c0d739c27996ff0af1de0b2abbd379))
+* requirements.txt to reduce vulnerabilities ([#14](https://github.com/pantherale0/ha-samsungehs/issues/14)) ([8fac5b7](https://github.com/pantherale0/ha-samsungehs/commit/8fac5b74acd532fa85c7b6b2a3e390ec84b2a897))
+
 ## [1.2.0](https://github.com/pantherale0/ha-samsungehs/compare/v1.1.1...v1.2.0) (2026-10-22)
 
 
