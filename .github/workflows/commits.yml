@@ -23,7 +23,7 @@ jobs:
           ref: ${{ github.event.pull_request.head.sha || github.sha }}
       - uses: actions/setup-python@v5
         with:
-          python-version: '3.13'
+          python-version: '3.14'
       - name: Test the validator
         run: python -m unittest discover -s tests -p 'test_check_commits.py'
       - name: Check PR title
