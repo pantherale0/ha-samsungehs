@@ -200,10 +200,7 @@ async def async_read_attribute_service(call: ServiceCall) -> dict:
     address: str | None = None
     attribute_to_read: int = call.data["attribute"]  # (format in 0xXXXX)
     device: dr.AnyDeviceEntry = _get_device_from_call(call)
-    for entry_id in device.config_entries:
-        config_entry = call.hass.config_entries.async_get_entry(entry_id)
-        if config_entry and config_entry.domain == DOMAIN:
-            break
+    config_entry = call.hass.config_entries.async_get_entry(device.config_entry_id)
 
     address = _get_device_address(device)
 
@@ -238,10 +235,7 @@ async def async_write_attribute_service(call: ServiceCall) -> None:
     attribute_to_write: int = call.data["attribute"]  # (format in 0xXXXX)
     value_to_write: int = call.data["value"]
     device: dr.AnyDeviceEntry = _get_device_from_call(call)
-    for entry_id in device.config_entries:
-        config_entry = call.hass.config_entries.async_get_entry(entry_id)
-        if config_entry and config_entry.domain == DOMAIN:
-            break
+    config_entry = call.hass.config_entries.async_get_entry(device.config_entry_id)
 
     address = _get_device_address(device)
 
