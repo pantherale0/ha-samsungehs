@@ -1,5 +1,7 @@
 """Adds config flow for Samsung EHS."""
 
+import re
+
 import probatio as vol
 from homeassistant import config_entries
 from homeassistant.const import CONF_DEVICE
@@ -21,6 +23,16 @@ SUB_STEP_USER = vol.Schema(
         vol.Required("address"): selector.TextSelector(),
     }
 )
+
+ADDRESS_SEPARATORS = re.compile(r"[\s.:-]")
+ADDRESS_FORMAT = re.compile(r"[0-9A-F]{6}")
+
+
+def normalize_address(address: str) -> str | None:
+    """Return a NASA address as six upper-case hex digits, or None if invalid."""
+    # Accept the dotted form shown by Samsung tools, e.g. 20.00.00.
+    address = ADDRESS_SEPARATORS.sub("", address).upper()
+    return address if ADDRESS_FORMAT.fullmatch(address) else None
 
 
 class SamsungEhsConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
@@ -88,11 +100,14 @@ class SamsungEhsDeviceSubentry(config_entries.ConfigSubentryFlow):
         """Handle a flow initialized by the user."""
         _errors = {}
         if user_input is not None:
-            return self.async_create_entry(
-                title=user_input["address"],
-                data={},
-                unique_id=user_input["address"],
-            )
+            address = normalize_address(user_input["address"])
+            if address is not None:
+                return self.async_create_entry(
+                    title=address,
+                    data={},
+                    unique_id=address,
+                )
+            _errors["address"] = "invalid_address"
 
         return self.async_show_form(
             step_id="user",
