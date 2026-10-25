@@ -70,6 +70,8 @@ class SamsungEhsSensorKey(StrEnum):
     DISCHARGE_TARGET_TEMPERATURE = "discharge_target_temperature"
 
     # Indoor unit only
+    ZONE_1_EXTERNAL_ROOM_TEMPERATURE = "zone_1_external_room_temperature"
+    ZONE_2_EXTERNAL_ROOM_TEMPERATURE = "zone_2_external_room_temperature"
     WATER_PUMP_SPEED = "water_pump_speed"
     LEAVING_WATER_TEMPERATURE = "leaving_water_temperature"
     RETURN_WATER_TEMPERATURE = "return_water_temperature"
@@ -91,6 +93,7 @@ class SamsungEhsSensorEntityDescription(SensorEntityDescription):
     )
     message: type[BaseMessage] | None = None
     value_fn: Callable[[NasaDevice], Any] | None = None
+    enabled_message: type[BaseMessage] | None = None
 
 
 ALL_ENTITY_DESCRIPTIONS: tuple[SamsungEhsSensorEntityDescription, ...] = (
@@ -286,6 +289,27 @@ OUTDOOR_ENTITY_DESCRIPTIONS: tuple[SamsungEhsSensorEntityDescription, ...] = (
 )
 
 INDOOR_ENTITY_DESCRIPTIONS: tuple[SamsungEhsSensorEntityDescription, ...] = (
+    # Disabled until reading this is validated
+    # SamsungEhsSensorEntityDescription(
+    #     key=SamsungEhsSensorKey.ZONE_1_EXTERNAL_ROOM_TEMPERATURE,
+    #     translation_key=SamsungEhsSensorKey.ZONE_1_EXTERNAL_ROOM_TEMPERATURE,
+    #     native_unit_of_measurement=UnitOfTemperature.CELSIUS,
+    #     device_class=SensorDeviceClass.TEMPERATURE,
+    #     state_class=SensorStateClass.MEASUREMENT,
+    #     message=indoor.InRoomTempZone1Message,
+    #     enabled_message=indoor.InRoomTempSensorMessage,
+    #     requires_read=True,
+    # ),
+    # SamsungEhsSensorEntityDescription(
+    #     key=SamsungEhsSensorKey.ZONE_2_EXTERNAL_ROOM_TEMPERATURE,
+    #     translation_key=SamsungEhsSensorKey.ZONE_2_EXTERNAL_ROOM_TEMPERATURE,
+    #     native_unit_of_measurement=UnitOfTemperature.CELSIUS,
+    #     device_class=SensorDeviceClass.TEMPERATURE,
+    #     state_class=SensorStateClass.MEASUREMENT,
+    #     message=indoor.InRoomTempZone2Message,
+    #     enabled_message=indoor.InRoomTempSensorZone2Message,
+    #     requires_read=True,
+    # ),
     SamsungEhsSensorEntityDescription(
         key=SamsungEhsSensorKey.WATER_PUMP_SPEED,
         translation_key=SamsungEhsSensorKey.WATER_PUMP_SPEED,
@@ -434,6 +458,15 @@ class SamsungEhsSensor(SamsungEhsEntity, SensorEntity):
             requires_read=entity_description.requires_read,
         )
         self.entity_description = entity_description
+        if entity_description.enabled_message is not None:
+            messages = (
+                coordinator.config_entry.runtime_data.messages_to_read.setdefault(
+                    self._device_address, []
+                )
+            )
+            message_id = entity_description.enabled_message.MESSAGE_ID
+            if message_id not in messages:
+                messages.append(message_id)
 
     @property
     def native_value(self) -> int | float | None:
@@ -456,8 +489,14 @@ class SamsungEhsSensor(SamsungEhsEntity, SensorEntity):
     @property
     def available(self) -> bool:
         """Return if the sensor is available."""
-        if self._device is None:
+        if not super().available:
             return False
+        if (enabled_message := self.entity_description.enabled_message) is not None:
+            if self.get_attribute(enabled_message) is not True:
+                return False
+            value = self.get_attribute(self.entity_description.message)
+            if not isinstance(value, (int, float)) or isinstance(value, bool):
+                return False
         if (
             self.entity_description.value_fn is None
             and self.entity_description.message is None

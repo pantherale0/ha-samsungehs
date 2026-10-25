@@ -1,6 +1,6 @@
 """Adds config flow for Samsung EHS."""
 
-import voluptuous as vol
+import probatio as vol
 from homeassistant import config_entries
 from homeassistant.const import CONF_DEVICE
 from homeassistant.core import callback

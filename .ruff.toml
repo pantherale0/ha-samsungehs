@@ -32,3 +32,7 @@ max-complexity = 25
 # Pytest tests use plain assertions against literal expected values.
 "tests/test_fsv_entities.py" = ["S101", "PLR2004"]
 "tests/test_water_law_sensors.py" = ["S101"]
+
+"tests/test_external_room_temperature.py" = ["S101"]
+
+"tests/test_override_sensors.py" = ["S101", "PLR2004"]
