@@ -34,6 +34,53 @@ This integration provides support for the following Samsung EHS platforms:
 - **Number** - Adjust configuration parameters like DHW disinfection schedule and compressor settings
 - **Select** - Choose from predefined options like DHW disinfection day of week and pump modes
 
+## External room temperature
+
+Use `samsungehs.set_external_room_temperature` to supply an external room
+sensor reading for zone 1 or zone 2. Select the Samsung EHS integration
+connection whose bus should receive the broadcast. Temperatures are always in
+degrees Celsius.
+
+```yaml
+action: samsungehs.set_external_room_temperature
+data:
+  config_entry_id: YOUR_CONFIG_ENTRY_ID
+  zone: 1
+  enabled: true
+  temperature: 21.4
+```
+
+Each indoor unit exposes a "Zone 1 external room sensor enabled" binary sensor
+and a "Zone 1 external room temperature" sensor, with equivalent entities for
+zone 2. These read reported attributes rather than assuming that the broadcast
+was accepted. The temperature sensor is unavailable when the override is disabled,
+the enable flag is unknown, the reading is missing, or the device is disconnected.
+The enabled binary sensor remains available and reports off when disabled.
+
+Each call sends one notification. An automation must repeat the call periodically,
+including when the temperature has not changed. The upstream example uses a
+30-second interval. Only send valid, fresh readings from your external sensor;
+never substitute zero for an unavailable reading. Convert readings from
+Fahrenheit to Celsius before calling this action.
+
+To disable the external sensor, use the same action with `enabled: false`.
+No temperature is required. Any supplied temperature is ignored when disabled.
+
+```yaml
+action: samsungehs.set_external_room_temperature
+data:
+  config_entry_id: YOUR_CONFIG_ENTRY_ID
+  zone: 1
+  enabled: false
+```
+
+The action broadcasts notifications as wired controller `510000` to `B0FF20`
+on the selected connection. The broadcast can affect multiple indoor units on
+that bus. No climate entity or discovered device is required. A completed call confirms only
+that the send completed; notifications have no device acknowledgement.
+Verify operation and sensor-source restoration on your hardware. Automatic
+fallback when updates stop has not been established.
+
 ## Water Heater Operation Modes
 
 The Samsung EHS water heater (DHW) system supports the following operation modes:

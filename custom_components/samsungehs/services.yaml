@@ -1,3 +1,31 @@
+set_external_room_temperature:
+  fields:
+    config_entry_id:
+      required: true
+      selector:
+        config_entry:
+          integration: samsungehs
+    zone:
+      required: true
+      selector:
+        select:
+          options:
+            - "1"
+            - "2"
+    enabled:
+      required: true
+      selector:
+        boolean:
+    temperature:
+      example: 21.4
+      selector:
+        number:
+          min: -3276.8
+          max: 3276.7
+          step: 0.1
+          mode: box
+          unit_of_measurement: "°C"
+
 read_attribute:
   fields:
     device_id:

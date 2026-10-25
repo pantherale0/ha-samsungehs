@@ -1,17 +1,26 @@
 """Services for Samsung EHS integration."""
 
 import logging
+import math
 from enum import StrEnum
 from typing import TYPE_CHECKING
 
-import voluptuous as vol
-from homeassistant.const import ATTR_DEVICE_ID
+import probatio as vol
+from homeassistant.const import ATTR_CONFIG_ENTRY_ID, ATTR_DEVICE_ID
 from homeassistant.core import HomeAssistant, ServiceCall, SupportsResponse, callback
-from homeassistant.exceptions import ServiceValidationError
+from homeassistant.exceptions import HomeAssistantError, ServiceValidationError
 from homeassistant.helpers import config_validation as cv
 from homeassistant.helpers import device_registry as dr
+from homeassistant.helpers import service
+from pysamsungnasa.protocol.enum import DataType
 from pysamsungnasa.protocol.factory.messages import MESSAGE_PARSERS
-from pysamsungnasa.protocol.factory.types import BaseMessage, RawMessage
+from pysamsungnasa.protocol.factory.messages.indoor import (
+    InRoomTempSensorMessage,
+    InRoomTempSensorZone2Message,
+    InRoomTempZone1Message,
+    InRoomTempZone2Message,
+)
+from pysamsungnasa.protocol.factory.types import BaseMessage, RawMessage, SendMessage
 
 from .const import DOMAIN
 
@@ -26,11 +35,47 @@ class SamsungEHSService(StrEnum):
 
     READ_ATTRIBUTE = "read_attribute"
     WRITE_ATTRIBUTE = "write_attribute"
+    SET_EXTERNAL_ROOM_TEMPERATURE = "set_external_room_temperature"
+
+
+def _validate_external_temperature(value: object) -> float:
+    """Validate a Celsius value that fits the signed NASA temperature field."""
+    if isinstance(value, bool):
+        message = "Temperature must be a number"
+        raise vol.Invalid(message)
+    temperature = vol.Coerce(float)(value)
+    if not math.isfinite(temperature):
+        message = "Temperature must be finite"
+        raise vol.Invalid(message)
+    vol.Range(min=-3276.8, max=3276.7)(temperature)
+    return temperature
+
+
+def _validate_zone(value: object) -> int:
+    """Accept a zone number or its selector representation."""
+    if type(value) not in (int, str) or str(value) not in ("1", "2"):
+        message = "Zone must be 1 or 2"
+        raise vol.Invalid(message)
+    return int(value)
+
+
+EXTERNAL_ROOM_TEMPERATURE_SCHEMA = {
+    vol.Required(ATTR_CONFIG_ENTRY_ID): cv.string,
+    vol.Required("zone"): _validate_zone,
+    vol.Required("enabled"): cv.boolean,
+    vol.Optional("temperature"): _validate_external_temperature,
+}
 
 
 @callback
 def async_register_services(hass: HomeAssistant) -> None:
     """Register services for Samsung EHS integration."""
+    hass.services.async_register(
+        DOMAIN,
+        SamsungEHSService.SET_EXTERNAL_ROOM_TEMPERATURE,
+        async_set_external_room_temperature_service,
+        schema=vol.Schema(EXTERNAL_ROOM_TEMPERATURE_SCHEMA),
+    )
     hass.services.async_register(
         domain=DOMAIN,
         service=SamsungEHSService.READ_ATTRIBUTE,
@@ -58,7 +103,57 @@ def async_register_services(hass: HomeAssistant) -> None:
     )
 
 
-def _get_device_from_call(call: ServiceCall) -> dr.DeviceEntry:
+async def async_set_external_room_temperature_service(call: ServiceCall) -> None:
+    """Broadcast one external room sensor notification on the selected bus."""
+    entry: SamsungEhsConfigEntry = service.async_get_config_entry(
+        call.hass, DOMAIN, call.data[ATTR_CONFIG_ENTRY_ID]
+    )
+    enabled: bool = call.data["enabled"]
+    temperature: float | None = call.data.get("temperature")
+    if enabled and temperature is None:
+        raise ServiceValidationError(
+            translation_domain=DOMAIN,
+            translation_key="external_temperature_required",
+        )
+    client = entry.runtime_data.client
+    if not client.client.is_connected:
+        raise HomeAssistantError(
+            translation_domain=DOMAIN,
+            translation_key="external_temperature_failed",
+        )
+    sensor_message, temperature_message = (
+        (InRoomTempSensorMessage, InRoomTempZone1Message)
+        if call.data["zone"] == 1
+        else (InRoomTempSensorZone2Message, InRoomTempZone2Message)
+    )
+    messages = [
+        SendMessage(
+            MESSAGE_ID=sensor_message.MESSAGE_ID,
+            PAYLOAD=sensor_message.to_bytes(enabled),
+        )
+    ]
+    if enabled and temperature is not None:
+        messages.append(
+            SendMessage(
+                MESSAGE_ID=temperature_message.MESSAGE_ID,
+                PAYLOAD=round(temperature * 10).to_bytes(2, "big", signed=True),
+            )
+        )
+    try:
+        await client.send_message(
+            destination="B0FF20",
+            request_type=DataType.NOTIFICATION,
+            messages=messages,
+            source="510000",
+        )
+    except OSError as err:
+        raise HomeAssistantError(
+            translation_domain=DOMAIN,
+            translation_key="external_temperature_failed",
+        ) from err
+
+
+def _get_device_from_call(call: ServiceCall) -> dr.AnyDeviceEntry:
     """Get device from service call."""
     device_id = call.data.get(ATTR_DEVICE_ID)
     if not device_id:
@@ -79,7 +174,7 @@ def _get_device_from_call(call: ServiceCall) -> dr.DeviceEntry:
     return device
 
 
-def _get_device_address(device: dr.DeviceEntry) -> str | None:
+def _get_device_address(device: dr.AnyDeviceEntry) -> str | None:
     """Get device address from device entry."""
     for identifier in device.identifiers:
         if identifier[0] == DOMAIN:
@@ -87,7 +182,7 @@ def _get_device_address(device: dr.DeviceEntry) -> str | None:
     return None
 
 
-def _get_attribute_class_by_id(attribute_id: int) -> BaseMessage:
+def _get_attribute_class_by_id(attribute_id: int) -> type[BaseMessage]:
     """Get attribute class by its ID."""
     attribute = MESSAGE_PARSERS.get(attribute_id)
     if attribute:
@@ -104,7 +199,7 @@ async def async_read_attribute_service(call: ServiceCall) -> dict:
     config_entry: SamsungEhsConfigEntry | None = None
     address: str | None = None
     attribute_to_read: int = call.data["attribute"]  # (format in 0xXXXX)
-    device: dr.DeviceEntry = _get_device_from_call(call)
+    device: dr.AnyDeviceEntry = _get_device_from_call(call)
     for entry_id in device.config_entries:
         config_entry = call.hass.config_entries.async_get_entry(entry_id)
         if config_entry and config_entry.domain == DOMAIN:
@@ -142,7 +237,7 @@ async def async_write_attribute_service(call: ServiceCall) -> None:
     address: str | None = None
     attribute_to_write: int = call.data["attribute"]  # (format in 0xXXXX)
     value_to_write: int = call.data["value"]
-    device: dr.DeviceEntry = _get_device_from_call(call)
+    device: dr.AnyDeviceEntry = _get_device_from_call(call)
     for entry_id in device.config_entries:
         config_entry = call.hass.config_entries.async_get_entry(entry_id)
         if config_entry and config_entry.domain == DOMAIN:

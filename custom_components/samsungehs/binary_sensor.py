@@ -8,10 +8,10 @@ from enum import StrEnum
 from typing import TYPE_CHECKING, Any
 
 from homeassistant.components.binary_sensor import (
-    BinarySensorDeviceClass,
     BinarySensorEntity,
     BinarySensorEntityDescription,
 )
+from homeassistant.components.binary_sensor.const import BinarySensorDeviceClass
 from pysamsungnasa.helpers import Address
 from pysamsungnasa.protocol.enum import (
     AddressClass,
@@ -19,7 +19,6 @@ from pysamsungnasa.protocol.enum import (
     InThermostatStatus,
     OutdoorCompressorLoad,
     OutdoorOperationStatus,
-    OutdoorPumpOutLoad,
 )
 from pysamsungnasa.protocol.factory.messages import indoor, outdoor
 
@@ -41,6 +40,8 @@ class SamsungEhsBinarySensorKey(StrEnum):
     COMPRESSOR_RUNNING = "compressor_running"
     CIRCULATION_PUMP_RUNNING = "circulation_pump_running"
     HP_RUNNING = "hp_running"
+    ZONE_1_EXTERNAL_ROOM_SENSOR_ENABLED = "zone_1_external_room_sensor_enabled"
+    ZONE_2_EXTERNAL_ROOM_SENSOR_ENABLED = "zone_2_external_room_sensor_enabled"
 
     INDOOR_DHW_ON = "indoor_dhw_on"
     INDOOR_HEATING_ON = "indoor_heating_on"
@@ -69,14 +70,6 @@ OUTDOOR_ENTITY_DESCRIPTIONS = (
         messages_expected_value=OutdoorCompressorLoad.ON,
         requires_read=True,
     ),
-    # SamsungEhsBinarySensorEntityDescription(
-    #     key=SamsungEhsBinarySensorKey.CIRCULATION_PUMP_RUNNING,
-    #     translation_key=SamsungEhsBinarySensorKey.CIRCULATION_PUMP_RUNNING,
-    #     device_class=BinarySensorDeviceClass.RUNNING,
-    #     messages_expected_value=OutdoorPumpOutLoad.ON,
-    #     message=outdoor.OutdoorPumpOutValveStatus,
-    #     requires_read=True,
-    # ),
     SamsungEhsBinarySensorEntityDescription(
         key=SamsungEhsBinarySensorKey.HP_RUNNING,
         translation_key=SamsungEhsBinarySensorKey.HP_RUNNING,
@@ -88,6 +81,21 @@ OUTDOOR_ENTITY_DESCRIPTIONS = (
 
 # Define entiry descriptions for a indoor unit
 INDOOR_ENTITY_DESCRIPTIONS = (
+    # Disabled until reading this is validated
+    # SamsungEhsBinarySensorEntityDescription(
+    #     key=SamsungEhsBinarySensorKey.ZONE_1_EXTERNAL_ROOM_SENSOR_ENABLED,
+    #     translation_key=SamsungEhsBinarySensorKey.ZONE_1_EXTERNAL_ROOM_SENSOR_ENABLED,
+    #     message=indoor.InRoomTempSensorMessage,
+    #     messages_expected_value=True,
+    #     requires_read=True,
+    # ),
+    # SamsungEhsBinarySensorEntityDescription(
+    #     key=SamsungEhsBinarySensorKey.ZONE_2_EXTERNAL_ROOM_SENSOR_ENABLED,
+    #     translation_key=SamsungEhsBinarySensorKey.ZONE_2_EXTERNAL_ROOM_SENSOR_ENABLED,
+    #     message=indoor.InRoomTempSensorZone2Message,
+    #     messages_expected_value=True,
+    #     requires_read=True,
+    # ),
     SamsungEhsBinarySensorEntityDescription(
         key=SamsungEhsBinarySensorKey.INDOOR_DHW_ON,
         translation_key=SamsungEhsBinarySensorKey.INDOOR_DHW_ON,
@@ -196,8 +204,9 @@ class SamsungEhsBinarySensor(SamsungEhsEntity, BinarySensorEntity):
     @property
     def is_on(self) -> bool | None:
         """Return true if the binary_sensor is on."""
-        if self._device is None:
+        if not self.available:
             return None
-        return self.entity_description.messages_expected_value == self.get_attribute(
-            self.entity_description.message
-        )
+        value = self.get_attribute(self.entity_description.message)
+        if value is None:
+            return None
+        return self.entity_description.messages_expected_value == value

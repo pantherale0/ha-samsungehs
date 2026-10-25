@@ -16,20 +16,19 @@ from pysamsungnasa.protocol.enum import (
     AddressClass,
     InOperationMode,
     InOperationPower,
-    OutdoorIndoorDefrostStep,
     OutdoorOperationStatus,
 )
 from pysamsungnasa.protocol.factory.messages.indoor import (
+    DhwReferenceTemperatureMessage,
     IndoorFlowTemperature,
+    InFsv2091UseThermostat1,
+    InFsv2092UseThermostat2,
     InOperationModeMessage,
     InOperationPowerMessage,
     InRoomTemperature,
     InTargetTemperature,
     InWaterLawOffsetTemperature,
     InWaterOutletTargetTemperature,
-    InFsv2091UseThermostat1,
-    InFsv2092UseThermostat2,
-    DhwReferenceTemperatureMessage,
 )
 from pysamsungnasa.protocol.factory.messages.outdoor import (
     OutdoorDefrostStatus,
@@ -124,7 +123,9 @@ class SamsungEhsClimate(SamsungEhsEntity, ClimateEntity):
         else:
             return None
         return (
-            float(value) if value is not None and not isinstance(value, str) else None
+            float(value)
+            if isinstance(value, (int, float)) and not isinstance(value, bool)
+            else None
         )
 
     @property
@@ -142,7 +143,9 @@ class SamsungEhsClimate(SamsungEhsEntity, ClimateEntity):
         else:
             return None
         return (
-            float(value) if value is not None and not isinstance(value, str) else None
+            float(value)
+            if isinstance(value, (int, float)) and not isinstance(value, bool)
+            else None
         )
 
     @property

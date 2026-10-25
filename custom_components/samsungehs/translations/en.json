@@ -170,6 +170,12 @@
             },
             "return_water_temperature": {
                 "name": "Return Water Temperature"
+            },
+            "zone_1_external_room_temperature": {
+                "name": "Zone 1 external room temperature"
+            },
+            "zone_2_external_room_temperature": {
+                "name": "Zone 2 external room temperature"
             }
         },
         "binary_sensor": {
@@ -205,6 +211,12 @@
             },
             "indoor_z2_heating_on": {
                 "name": "Zone 2 Heating On"
+            },
+            "zone_1_external_room_sensor_enabled": {
+                "name": "Zone 1 external room sensor enabled"
+            },
+            "zone_2_external_room_sensor_enabled": {
+                "name": "Zone 2 external room sensor enabled"
             }
         },
         "climate": {
@@ -427,6 +439,28 @@
                     "description": "The value to write"
                 }
             }
+        },
+        "set_external_room_temperature": {
+            "name": "Set external room temperature",
+            "description": "Broadcast one external room sensor notification on the selected Samsung EHS connection. Repeat periodically to maintain the override.",
+            "fields": {
+                "zone": {
+                    "name": "Zone",
+                    "description": "The room temperature zone, 1 or 2."
+                },
+                "enabled": {
+                    "name": "Enabled",
+                    "description": "Use the external room sensor when enabled. Set to false to disable it."
+                },
+                "temperature": {
+                    "name": "Temperature",
+                    "description": "External room temperature in degrees Celsius. Required when enabled; ignored when disabled."
+                },
+                "config_entry_id": {
+                    "name": "Connection",
+                    "description": "The Samsung EHS integration connection on which to broadcast the notification."
+                }
+            }
         }
     },
     "exceptions": {
@@ -438,6 +472,12 @@
         },
         "invalid_device": {
             "message": "Invalid device '{device_id}' for attribute {attribute}"
+        },
+        "external_temperature_required": {
+            "message": "Temperature in degrees Celsius is required when the external room sensor is enabled."
+        },
+        "external_temperature_failed": {
+            "message": "Failed to broadcast the external room sensor notification on the Samsung EHS connection."
         }
     }
 }
