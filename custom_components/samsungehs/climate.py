@@ -116,10 +116,8 @@ class SamsungEhsClimate(SamsungEhsEntity, ClimateEntity):
         control_mode = get_temperature_control_mode(self._device)
         if control_mode == "target_room_temperature":
             value = self.get_attribute(InRoomTemperature)
-        elif control_mode == "target_water_temperature":
+        elif control_mode in ("target_water_temperature", "water_law_offset"):
             value = self.get_attribute(IndoorFlowTemperature)
-        elif control_mode == "water_law_offset":
-            value = self.get_attribute(InWaterLawOffsetTemperature)
         else:
             return None
         return (
