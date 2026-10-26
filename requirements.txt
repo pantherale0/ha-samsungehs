@@ -1,2 +1,2 @@
 homeassistant==2026.10.4
-pysamsungnasa==3.0.1
+pysamsungnasa==3.0.2

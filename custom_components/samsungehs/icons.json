@@ -1,7 +1,374 @@
 {
+    "entity": {
+        "sensor": {
+            "available_attributes": {
+                "default": "mdi:format-list-bulleted"
+            },
+            "error_code": {
+                "default": "mdi:alert-circle-outline"
+            },
+            "operation_status": {
+                "default": "mdi:heat-pump",
+                "state": {
+                    "op_stop": "mdi:heat-pump-outline",
+                    "op_deice": "mdi:snowflake-melt",
+                    "op_nonstop_deice": "mdi:snowflake-melt",
+                    "op_split_deice": "mdi:snowflake-melt",
+                    "op_safety": "mdi:shield-alert-outline",
+                    "op_prohibit": "mdi:cancel"
+                }
+            },
+            "defrost_status": {
+                "default": "mdi:snowflake-melt",
+                "state": {
+                    "no_defrost_operation": "mdi:snowflake-off"
+                }
+            },
+            "defrost_stage": {
+                "default": "mdi:snowflake-melt"
+            },
+            "outdoor_temperature": {
+                "default": "mdi:thermometer"
+            },
+            "outdoor_cop": {
+                "default": "mdi:gauge"
+            },
+            "power_generation": {
+                "default": "mdi:heat-wave"
+            },
+            "energy_consumption": {
+                "default": "mdi:lightning-bolt"
+            },
+            "energy_generation": {
+                "default": "mdi:heat-wave"
+            },
+            "power_usage": {
+                "default": "mdi:lightning-bolt"
+            },
+            "compressor_frequency": {
+                "default": "mdi:sine-wave"
+            },
+            "target_compressor_frequency": {
+                "default": "mdi:sine-wave"
+            },
+            "eva_out_temperature": {
+                "default": "mdi:thermometer"
+            },
+            "eva_in_temperature": {
+                "default": "mdi:thermometer"
+            },
+            "condenser_out_temperature": {
+                "default": "mdi:thermometer"
+            },
+            "condenser_in_temperature": {
+                "default": "mdi:thermometer"
+            },
+            "fan_1_speed": {
+                "default": "mdi:fan"
+            },
+            "fan_2_speed": {
+                "default": "mdi:fan"
+            },
+            "eev_position": {
+                "default": "mdi:valve"
+            },
+            "tw1_temperature": {
+                "default": "mdi:water-thermometer"
+            },
+            "tw2_temperature": {
+                "default": "mdi:water-thermometer"
+            },
+            "suction_temperature": {
+                "default": "mdi:thermometer"
+            },
+            "discharge_target_temperature": {
+                "default": "mdi:thermometer-check"
+            },
+            "discharge_temperature": {
+                "default": "mdi:thermometer"
+            },
+            "outdoor_current": {
+                "default": "mdi:current-ac"
+            },
+            "supply_voltage": {
+                "default": "mdi:current-ac"
+            },
+            "capacity_request": {
+                "default": "mdi:gauge"
+            },
+            "room_temperature": {
+                "default": "mdi:home-thermometer"
+            },
+            "zone_1_external_room_temperature": {
+                "default": "mdi:home-thermometer"
+            },
+            "zone_2_external_room_temperature": {
+                "default": "mdi:home-thermometer"
+            },
+            "water_pump_speed": {
+                "default": "mdi:water-pump"
+            },
+            "return_water_temperature": {
+                "default": "mdi:water-thermometer"
+            },
+            "leaving_water_temperature": {
+                "default": "mdi:water-thermometer"
+            },
+            "flow_rate": {
+                "default": "mdi:waves-arrow-right"
+            },
+            "flow_set_point_temperature": {
+                "default": "mdi:thermometer-chevron-up"
+            },
+            "water_law_target_temperature": {
+                "default": "mdi:thermometer-chevron-up"
+            },
+            "water_law_offset": {
+                "default": "mdi:thermometer-plus"
+            },
+            "three_way_valve": {
+                "default": "mdi:valve",
+                "state": {
+                    "room": "mdi:radiator",
+                    "tank": "mdi:water-boiler"
+                }
+            },
+            "dhw_tank_temperature": {
+                "default": "mdi:water-thermometer"
+            },
+            "compressor_dhw_standard_temperature": {
+                "default": "mdi:water-thermometer"
+            },
+            "dhw_min_operating_time": {
+                "default": "mdi:timer-outline"
+            },
+            "dhw_max_operating_time": {
+                "default": "mdi:timer-outline"
+            }
+        },
+        "binary_sensor": {
+            "compressor_running": {
+                "default": "mdi:engine",
+                "state": {
+                    "off": "mdi:engine-off"
+                }
+            },
+            "hp_running": {
+                "default": "mdi:heat-pump",
+                "state": {
+                    "off": "mdi:heat-pump-outline"
+                }
+            },
+            "defrost": {
+                "default": "mdi:snowflake-melt",
+                "state": {
+                    "off": "mdi:snowflake-off"
+                }
+            },
+            "four_way_valve": {
+                "default": "mdi:valve"
+            },
+            "zone_1_external_room_sensor_enabled": {
+                "default": "mdi:home-thermometer"
+            },
+            "zone_2_external_room_sensor_enabled": {
+                "default": "mdi:home-thermometer"
+            },
+            "indoor_dhw_on": {
+                "default": "mdi:water-boiler",
+                "state": {
+                    "off": "mdi:water-boiler-off"
+                }
+            },
+            "indoor_heating_on": {
+                "default": "mdi:radiator",
+                "state": {
+                    "off": "mdi:radiator-off"
+                }
+            },
+            "indoor_cooling_on": {
+                "default": "mdi:snowflake",
+                "state": {
+                    "off": "mdi:snowflake-off"
+                }
+            },
+            "indoor_booster_heater_on": {
+                "default": "mdi:heating-coil"
+            },
+            "indoor_z1_heating_on": {
+                "default": "mdi:radiator",
+                "state": {
+                    "off": "mdi:radiator-off"
+                }
+            },
+            "indoor_z2_heating_on": {
+                "default": "mdi:radiator",
+                "state": {
+                    "off": "mdi:radiator-off"
+                }
+            },
+            "indoor_thermo_on": {
+                "default": "mdi:thermostat"
+            }
+        },
+        "climate": {
+            "heating": {
+                "default": "mdi:thermostat"
+            }
+        },
+        "water_heater": {
+            "dhw": {
+                "default": "mdi:water-boiler"
+            }
+        },
+        "switch": {
+            "outing_mode": {
+                "default": "mdi:home-export-outline",
+                "state": {
+                    "off": "mdi:home-account"
+                }
+            },
+            "quiet_mode": {
+                "default": "mdi:volume-low",
+                "state": {
+                    "off": "mdi:volume-high"
+                }
+            },
+            "frequency_ratio_control": {
+                "default": "mdi:sine-wave"
+            },
+            "dhw_disinfection": {
+                "default": "mdi:bacteria-outline"
+            }
+        },
+        "number": {
+            "frequency_ratio_control_percent": {
+                "default": "mdi:percent"
+            },
+            "dhw_disinfection_start_hour": {
+                "default": "mdi:clock-start"
+            },
+            "dhw_disinfection_target_temperature": {
+                "default": "mdi:water-thermometer"
+            },
+            "dhw_disinfection_duration_minutes": {
+                "default": "mdi:timer-outline"
+            },
+            "dhw_disinfection_max_hours": {
+                "default": "mdi:timer-outline"
+            },
+            "fsv3083_bsh_capacity": {
+                "default": "mdi:heating-coil"
+            },
+            "dhw_max_operation_time": {
+                "default": "mdi:timer-outline"
+            },
+            "fsv2011_outdoor_temp_heating_max": {
+                "default": "mdi:thermometer"
+            },
+            "fsv2012_outdoor_temp_heating_min": {
+                "default": "mdi:thermometer"
+            },
+            "fsv2031_water_out_temp_wl2_heating_max": {
+                "default": "mdi:water-thermometer"
+            },
+            "fsv2032_water_out_temp_wl2_heating_min": {
+                "default": "mdi:water-thermometer"
+            },
+            "fsv2021_water_out_temp_wl1_heating_max": {
+                "default": "mdi:water-thermometer"
+            },
+            "fsv2022_water_out_temp_wl1_heating_min": {
+                "default": "mdi:water-thermometer"
+            },
+            "fsv4013_heat_off_temp": {
+                "default": "mdi:thermometer"
+            },
+            "inverter_pump_target_delta_t": {
+                "default": "mdi:thermometer-plus"
+            },
+            "fsv5011_outing_mode_water_out_temp_cooling": {
+                "default": "mdi:water-thermometer"
+            },
+            "fsv5012_outing_mode_room_temp_cooling": {
+                "default": "mdi:home-thermometer"
+            },
+            "fsv5013_outing_mode_water_out_temp_heating": {
+                "default": "mdi:water-thermometer"
+            },
+            "fsv5014_outing_mode_room_temp_heating": {
+                "default": "mdi:home-thermometer"
+            },
+            "fsv5015_outing_mode_auto_cool_wl1_water_temp": {
+                "default": "mdi:water-thermometer"
+            },
+            "fsv5016_outing_mode_auto_cool_wl2_water_temp": {
+                "default": "mdi:water-thermometer"
+            },
+            "fsv5017_outing_mode_auto_heat_wl1_water_temp": {
+                "default": "mdi:water-thermometer"
+            },
+            "fsv5018_outing_mode_auto_heat_wl2_water_temp": {
+                "default": "mdi:water-thermometer"
+            },
+            "fsv5019_outing_mode_target_tank_temp": {
+                "default": "mdi:water-thermometer"
+            },
+            "fsv5021_dhw_saving_temp_offset": {
+                "default": "mdi:thermometer-plus"
+            },
+            "fsv5023_dhw_saving_thermo_on_temp": {
+                "default": "mdi:water-thermometer"
+            },
+            "fsv5082_pv_control_cool_temp_shift": {
+                "default": "mdi:solar-power"
+            },
+            "fsv5083_pv_control_heat_temp_shift": {
+                "default": "mdi:solar-power"
+            },
+            "fsv5092_smart_grid_heat_temp_shift": {
+                "default": "mdi:transmission-tower"
+            },
+            "fsv5093_smart_grid_dhw_temp_shift": {
+                "default": "mdi:transmission-tower"
+            }
+        },
+        "select": {
+            "temperature_reference": {
+                "default": "mdi:thermometer"
+            },
+            "water_law_type_heating": {
+                "default": "mdi:radiator"
+            },
+            "use_thermostat_zone_1": {
+                "default": "mdi:thermostat"
+            },
+            "use_thermostat_zone_2": {
+                "default": "mdi:thermostat"
+            },
+            "remote_controller_room_temp_control": {
+                "default": "mdi:home-thermometer"
+            },
+            "dhw_disinfection_day_of_week": {
+                "default": "mdi:calendar-week"
+            },
+            "pwm_pump_mode": {
+                "default": "mdi:water-pump"
+            },
+            "inverter_pump_control_factor": {
+                "default": "mdi:water-pump"
+            }
+        }
+    },
     "services": {
         "set_external_room_temperature": {
-            "service": "mdi:thermometer"
+            "service": "mdi:home-thermometer"
+        },
+        "read_attribute": {
+            "service": "mdi:database-arrow-down"
+        },
+        "write_attribute": {
+            "service": "mdi:database-edit"
         }
     }
 }
