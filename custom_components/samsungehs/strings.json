@@ -296,6 +296,9 @@
             "fsv2022_water_out_temp_wl1_heating_min": {
                 "name": "FSV2022 Water Out Temp WL1 Heating Min"
             },
+            "fsv3083_bsh_capacity": {
+                "name": "FSV3083 Booster Heater Capacity"
+            },
             "fsv4013_heat_off_temp": {
                 "name": "Heat Off Temp"
             },

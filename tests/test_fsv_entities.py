@@ -204,6 +204,7 @@ def test_operation_and_reference_requirements(
         ("fsv2012_outdoor_temp_heating_min", 16981, b"\x00\x96", 15.0),
         ("fsv2031_water_out_temp_wl2_heating_max", 16984, b"\x01\xf4", 50.0),
         ("fsv2032_water_out_temp_wl2_heating_min", 16985, b"\x01^", 35.0),
+        ("fsv3083_bsh_capacity", 17135, b"\x00\x03", 3.0),
     ],
 )
 def test_water_law_numbers(
