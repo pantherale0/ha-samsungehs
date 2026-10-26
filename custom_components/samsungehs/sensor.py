@@ -4,24 +4,31 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from enum import StrEnum
+from enum import Enum, StrEnum
 from typing import TYPE_CHECKING, Any
 
+from homeassistant.const import (
+    PERCENTAGE,
+    EntityCategory,
+    UnitOfElectricCurrent,
+    UnitOfElectricPotential,
+    UnitOfEnergy,
+    UnitOfPower,
+    UnitOfTemperature,
+)
 from homeassistant.components.sensor import (
     SensorDeviceClass,
     SensorEntity,
     SensorEntityDescription,
     SensorStateClass,
 )
-from homeassistant.const import (
-    PERCENTAGE,
-    EntityCategory,
-    UnitOfEnergy,
-    UnitOfPower,
-    UnitOfTemperature,
-)
 from pysamsungnasa.helpers import Address
-from pysamsungnasa.protocol.enum import AddressClass, In3WayValve
+from pysamsungnasa.protocol.enum import (
+    AddressClass,
+    In3WayValve,
+    OutdoorIndoorDefrostStep,
+    OutdoorOperationStatus,
+)
 from pysamsungnasa.protocol.factory.messages import basic, indoor, outdoor
 
 from .entity import SamsungEhsEntity
@@ -68,8 +75,18 @@ class SamsungEhsSensorKey(StrEnum):
     TW2_TEMPERATURE = "tw2_temperature"
     SUCTION_TEMPERATURE = "suction_temperature"
     DISCHARGE_TARGET_TEMPERATURE = "discharge_target_temperature"
+    OPERATION_STATUS = "operation_status"
+    DEFROST_STATUS = "defrost_status"
+    DEFROST_STAGE = "defrost_stage"
+    DISCHARGE_TEMPERATURE = "discharge_temperature"
+    OUTDOOR_CURRENT = "outdoor_current"
+    SUPPLY_VOLTAGE = "supply_voltage"
 
     # Indoor unit only
+    CAPACITY_REQUEST = "capacity_request"
+    ROOM_TEMPERATURE = "room_temperature"
+    ROOM_TARGET_TEMPERATURE = "room_target_temperature"
+    DHW_TARGET_TEMPERATURE = "dhw_target_temperature"
     ZONE_1_EXTERNAL_ROOM_TEMPERATURE = "zone_1_external_room_temperature"
     ZONE_2_EXTERNAL_ROOM_TEMPERATURE = "zone_2_external_room_temperature"
     WATER_PUMP_SPEED = "water_pump_speed"
@@ -109,6 +126,14 @@ def _three_way_valve(device: NasaDevice) -> str | None:
         return None
 
 
+def _enum_value(device: NasaDevice, message: type[BaseMessage]) -> str | None:
+    """Return a lower-case enum name from a device attribute."""
+    attribute = device.attributes.get(message.MESSAGE_ID)
+    if attribute is None or not isinstance(attribute.VALUE, Enum):
+        return None
+    return attribute.VALUE.name.lower()
+
+
 ALL_ENTITY_DESCRIPTIONS: tuple[SamsungEhsSensorEntityDescription, ...] = (
     SamsungEhsSensorEntityDescription(
         key=SamsungEhsSensorKey.AVAILABLE_ATTRIBUTES,
@@ -126,6 +151,33 @@ ALL_ENTITY_DESCRIPTIONS: tuple[SamsungEhsSensorEntityDescription, ...] = (
 )
 
 OUTDOOR_ENTITY_DESCRIPTIONS: tuple[SamsungEhsSensorEntityDescription, ...] = (
+    SamsungEhsSensorEntityDescription(
+        key=SamsungEhsSensorKey.OPERATION_STATUS,
+        translation_key=SamsungEhsSensorKey.OPERATION_STATUS,
+        entity_category=EntityCategory.DIAGNOSTIC,
+        device_class=SensorDeviceClass.ENUM,
+        options=[status.name.lower() for status in OutdoorOperationStatus],
+        message=outdoor.OutdoorOperationStatusMessage,
+        value_fn=lambda device: _enum_value(
+            device, outdoor.OutdoorOperationStatusMessage
+        ),
+    ),
+    SamsungEhsSensorEntityDescription(
+        key=SamsungEhsSensorKey.DEFROST_STATUS,
+        translation_key=SamsungEhsSensorKey.DEFROST_STATUS,
+        entity_category=EntityCategory.DIAGNOSTIC,
+        device_class=SensorDeviceClass.ENUM,
+        options=[status.name.lower() for status in OutdoorIndoorDefrostStep],
+        message=outdoor.OutdoorDefrostStatus,
+        value_fn=lambda device: _enum_value(device, outdoor.OutdoorDefrostStatus),
+    ),
+    SamsungEhsSensorEntityDescription(
+        key=SamsungEhsSensorKey.DEFROST_STAGE,
+        translation_key=SamsungEhsSensorKey.DEFROST_STAGE,
+        entity_category=EntityCategory.DIAGNOSTIC,
+        state_class=SensorStateClass.MEASUREMENT,
+        message=outdoor.OutdoorDefrostStage,
+    ),
     SamsungEhsSensorEntityDescription(
         key=SamsungEhsSensorKey.OUTDOOR_TEMPERATURE,
         translation_key=SamsungEhsSensorKey.OUTDOOR_TEMPERATURE,
@@ -299,30 +351,90 @@ OUTDOOR_ENTITY_DESCRIPTIONS: tuple[SamsungEhsSensorEntityDescription, ...] = (
         state_class=SensorStateClass.MEASUREMENT,
         message=outdoor.OutdoorTargetDischargeTemperature,
     ),
+    SamsungEhsSensorEntityDescription(
+        key=SamsungEhsSensorKey.DISCHARGE_TEMPERATURE,
+        translation_key=SamsungEhsSensorKey.DISCHARGE_TEMPERATURE,
+        entity_category=EntityCategory.DIAGNOSTIC,
+        native_unit_of_measurement=UnitOfTemperature.CELSIUS,
+        device_class=SensorDeviceClass.TEMPERATURE,
+        state_class=SensorStateClass.MEASUREMENT,
+        message=outdoor.OutdoorTopSensorTemp1,
+    ),
+    SamsungEhsSensorEntityDescription(
+        key=SamsungEhsSensorKey.OUTDOOR_CURRENT,
+        translation_key=SamsungEhsSensorKey.OUTDOOR_CURRENT,
+        entity_category=EntityCategory.DIAGNOSTIC,
+        native_unit_of_measurement=UnitOfElectricCurrent.AMPERE,
+        device_class=SensorDeviceClass.CURRENT,
+        state_class=SensorStateClass.MEASUREMENT,
+        message=outdoor.OutdoorCurrent,
+    ),
+    SamsungEhsSensorEntityDescription(
+        key=SamsungEhsSensorKey.SUPPLY_VOLTAGE,
+        translation_key=SamsungEhsSensorKey.SUPPLY_VOLTAGE,
+        entity_category=EntityCategory.DIAGNOSTIC,
+        native_unit_of_measurement=UnitOfElectricPotential.VOLT,
+        device_class=SensorDeviceClass.VOLTAGE,
+        state_class=SensorStateClass.MEASUREMENT,
+        message=outdoor.HeatPumpVoltage,
+    ),
 )
 
 INDOOR_ENTITY_DESCRIPTIONS: tuple[SamsungEhsSensorEntityDescription, ...] = (
-    # Disabled until reading this is validated
-    # SamsungEhsSensorEntityDescription(
-    #     key=SamsungEhsSensorKey.ZONE_1_EXTERNAL_ROOM_TEMPERATURE,
-    #     translation_key=SamsungEhsSensorKey.ZONE_1_EXTERNAL_ROOM_TEMPERATURE,
-    #     native_unit_of_measurement=UnitOfTemperature.CELSIUS,
-    #     device_class=SensorDeviceClass.TEMPERATURE,
-    #     state_class=SensorStateClass.MEASUREMENT,
-    #     message=indoor.InRoomTempZone1Message,
-    #     enabled_message=indoor.InRoomTempSensorMessage,
-    #     requires_read=True,
-    # ),
-    # SamsungEhsSensorEntityDescription(
-    #     key=SamsungEhsSensorKey.ZONE_2_EXTERNAL_ROOM_TEMPERATURE,
-    #     translation_key=SamsungEhsSensorKey.ZONE_2_EXTERNAL_ROOM_TEMPERATURE,
-    #     native_unit_of_measurement=UnitOfTemperature.CELSIUS,
-    #     device_class=SensorDeviceClass.TEMPERATURE,
-    #     state_class=SensorStateClass.MEASUREMENT,
-    #     message=indoor.InRoomTempZone2Message,
-    #     enabled_message=indoor.InRoomTempSensorZone2Message,
-    #     requires_read=True,
-    # ),
+    SamsungEhsSensorEntityDescription(
+        key=SamsungEhsSensorKey.CAPACITY_REQUEST,
+        translation_key=SamsungEhsSensorKey.CAPACITY_REQUEST,
+        entity_category=EntityCategory.DIAGNOSTIC,
+        state_class=SensorStateClass.MEASUREMENT,
+        message=indoor.InCapacityRequestMessage,
+    ),
+    SamsungEhsSensorEntityDescription(
+        key=SamsungEhsSensorKey.ROOM_TEMPERATURE,
+        translation_key=SamsungEhsSensorKey.ROOM_TEMPERATURE,
+        entity_category=EntityCategory.DIAGNOSTIC,
+        native_unit_of_measurement=UnitOfTemperature.CELSIUS,
+        device_class=SensorDeviceClass.TEMPERATURE,
+        state_class=SensorStateClass.MEASUREMENT,
+        message=indoor.InRoomTemperature,
+    ),
+    SamsungEhsSensorEntityDescription(
+        key=SamsungEhsSensorKey.ROOM_TARGET_TEMPERATURE,
+        translation_key=SamsungEhsSensorKey.ROOM_TARGET_TEMPERATURE,
+        entity_category=EntityCategory.DIAGNOSTIC,
+        native_unit_of_measurement=UnitOfTemperature.CELSIUS,
+        device_class=SensorDeviceClass.TEMPERATURE,
+        state_class=SensorStateClass.MEASUREMENT,
+        message=indoor.InTargetTemperature,
+    ),
+    SamsungEhsSensorEntityDescription(
+        key=SamsungEhsSensorKey.DHW_TARGET_TEMPERATURE,
+        translation_key=SamsungEhsSensorKey.DHW_TARGET_TEMPERATURE,
+        entity_category=EntityCategory.DIAGNOSTIC,
+        native_unit_of_measurement=UnitOfTemperature.CELSIUS,
+        device_class=SensorDeviceClass.TEMPERATURE,
+        state_class=SensorStateClass.MEASUREMENT,
+        message=indoor.DhwTargetTemperature,
+    ),
+    SamsungEhsSensorEntityDescription(
+        key=SamsungEhsSensorKey.ZONE_1_EXTERNAL_ROOM_TEMPERATURE,
+        translation_key=SamsungEhsSensorKey.ZONE_1_EXTERNAL_ROOM_TEMPERATURE,
+        native_unit_of_measurement=UnitOfTemperature.CELSIUS,
+        device_class=SensorDeviceClass.TEMPERATURE,
+        state_class=SensorStateClass.MEASUREMENT,
+        message=indoor.InRoomTempZone1Message,
+        enabled_message=indoor.InRoomTempSensorMessage,
+        requires_read=True,
+    ),
+    SamsungEhsSensorEntityDescription(
+        key=SamsungEhsSensorKey.ZONE_2_EXTERNAL_ROOM_TEMPERATURE,
+        translation_key=SamsungEhsSensorKey.ZONE_2_EXTERNAL_ROOM_TEMPERATURE,
+        native_unit_of_measurement=UnitOfTemperature.CELSIUS,
+        device_class=SensorDeviceClass.TEMPERATURE,
+        state_class=SensorStateClass.MEASUREMENT,
+        message=indoor.InRoomTempZone2Message,
+        enabled_message=indoor.InRoomTempSensorZone2Message,
+        requires_read=True,
+    ),
     SamsungEhsSensorEntityDescription(
         key=SamsungEhsSensorKey.WATER_PUMP_SPEED,
         translation_key=SamsungEhsSensorKey.WATER_PUMP_SPEED,
@@ -498,7 +610,7 @@ class SamsungEhsSensor(SamsungEhsEntity, SensorEntity):
                 messages.append(message_id)
 
     @property
-    def native_value(self) -> int | float | None:
+    def native_value(self) -> str | int | float | None:
         """Return the native value."""
         if self._device is None:
             return None
