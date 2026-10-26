@@ -36,3 +36,5 @@ max-complexity = 25
 "tests/test_external_room_temperature.py" = ["S101"]
 
 "tests/test_override_sensors.py" = ["S101", "PLR2004"]
+
+"tests/test_valve_defrost_tank.py" = ["S101"]

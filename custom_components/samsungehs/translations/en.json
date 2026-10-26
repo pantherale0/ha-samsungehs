@@ -117,6 +117,16 @@
             "water_law_offset": {
                 "name": "Water Law Offset"
             },
+            "three_way_valve": {
+                "name": "3-Way Valve",
+                "state": {
+                    "room": "Room",
+                    "tank": "Tank"
+                }
+            },
+            "dhw_tank_temperature": {
+                "name": "DHW Tank Temperature"
+            },
             "compressor_dhw_standard_temperature": {
                 "name": "Compressor DHW Standard Temperature"
             },
@@ -217,6 +227,12 @@
             },
             "zone_2_external_room_sensor_enabled": {
                 "name": "Zone 2 external room sensor enabled"
+            },
+            "indoor_thermo_on": {
+                "name": "Thermo On"
+            },
+            "defrost": {
+                "name": "Defrost"
             }
         },
         "climate": {

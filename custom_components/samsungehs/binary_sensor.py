@@ -42,6 +42,7 @@ class SamsungEhsBinarySensorKey(StrEnum):
     HP_RUNNING = "hp_running"
     ZONE_1_EXTERNAL_ROOM_SENSOR_ENABLED = "zone_1_external_room_sensor_enabled"
     ZONE_2_EXTERNAL_ROOM_SENSOR_ENABLED = "zone_2_external_room_sensor_enabled"
+    DEFROST = "defrost"
 
     INDOOR_DHW_ON = "indoor_dhw_on"
     INDOOR_HEATING_ON = "indoor_heating_on"
@@ -49,6 +50,7 @@ class SamsungEhsBinarySensorKey(StrEnum):
     INDOOR_BOOSTER_HEATER_ON = "indoor_booster_heater_on"
     INDOOR_Z1_HEATING_ON = "indoor_z1_heating_on"
     INDOOR_Z2_HEATING_ON = "indoor_z2_heating_on"
+    INDOOR_THERMO_ON = "indoor_thermo_on"
 
 
 @dataclass(frozen=True, kw_only=True)
@@ -75,6 +77,16 @@ OUTDOOR_ENTITY_DESCRIPTIONS = (
         translation_key=SamsungEhsBinarySensorKey.HP_RUNNING,
         device_class=BinarySensorDeviceClass.RUNNING,
         messages_expected_value=OutdoorOperationStatus.OP_NORMAL,
+        message=outdoor.OutdoorOperationStatusMessage,
+    ),
+    # Same states the climate entity reports as defrosting.
+    SamsungEhsBinarySensorEntityDescription(
+        key=SamsungEhsBinarySensorKey.DEFROST,
+        translation_key=SamsungEhsBinarySensorKey.DEFROST,
+        device_class=BinarySensorDeviceClass.RUNNING,
+        messages_expected_value=frozenset(
+            {OutdoorOperationStatus.OP_DEICE, OutdoorOperationStatus.OP_NONSTOP_DEICE}
+        ),
         message=outdoor.OutdoorOperationStatusMessage,
     ),
 )
@@ -137,6 +149,13 @@ INDOOR_ENTITY_DESCRIPTIONS = (
         device_class=BinarySensorDeviceClass.RUNNING,
         message=indoor.InThermostatZone2Status,
         messages_expected_value=InThermostatStatus.HEAT,
+    ),
+    SamsungEhsBinarySensorEntityDescription(
+        key=SamsungEhsBinarySensorKey.INDOOR_THERMO_ON,
+        translation_key=SamsungEhsBinarySensorKey.INDOOR_THERMO_ON,
+        device_class=BinarySensorDeviceClass.RUNNING,
+        message=indoor.InStateThermo,
+        messages_expected_value=True,
     ),
 )
 
@@ -206,7 +225,10 @@ class SamsungEhsBinarySensor(SamsungEhsEntity, BinarySensorEntity):
         """Return true if the binary_sensor is on."""
         if not self.available:
             return None
+        expected = self.entity_description.messages_expected_value
         value = self.get_attribute(self.entity_description.message)
         if value is None:
             return None
-        return self.entity_description.messages_expected_value == value
+        if isinstance(expected, frozenset):
+            return value in expected
+        return expected == value
