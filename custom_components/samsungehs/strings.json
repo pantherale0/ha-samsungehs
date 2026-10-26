@@ -28,8 +28,14 @@
                 "user": {
                     "data": {
                         "address": "NASA Address"
+                    },
+                    "data_description": {
+                        "address": "Six hex digits, e.g. 200000 or 20.00.00"
                     }
                 }
+            },
+            "error": {
+                "invalid_address": "Enter the address as six hex digits, e.g. 200000 or 20.00.00"
             }
         }
     },
