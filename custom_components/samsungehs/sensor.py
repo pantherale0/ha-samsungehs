@@ -85,8 +85,6 @@ class SamsungEhsSensorKey(StrEnum):
     # Indoor unit only
     CAPACITY_REQUEST = "capacity_request"
     ROOM_TEMPERATURE = "room_temperature"
-    ROOM_TARGET_TEMPERATURE = "room_target_temperature"
-    DHW_TARGET_TEMPERATURE = "dhw_target_temperature"
     ZONE_1_EXTERNAL_ROOM_TEMPERATURE = "zone_1_external_room_temperature"
     ZONE_2_EXTERNAL_ROOM_TEMPERATURE = "zone_2_external_room_temperature"
     WATER_PUMP_SPEED = "water_pump_speed"
@@ -396,24 +394,6 @@ INDOOR_ENTITY_DESCRIPTIONS: tuple[SamsungEhsSensorEntityDescription, ...] = (
         device_class=SensorDeviceClass.TEMPERATURE,
         state_class=SensorStateClass.MEASUREMENT,
         message=indoor.InRoomTemperature,
-    ),
-    SamsungEhsSensorEntityDescription(
-        key=SamsungEhsSensorKey.ROOM_TARGET_TEMPERATURE,
-        translation_key=SamsungEhsSensorKey.ROOM_TARGET_TEMPERATURE,
-        entity_category=EntityCategory.DIAGNOSTIC,
-        native_unit_of_measurement=UnitOfTemperature.CELSIUS,
-        device_class=SensorDeviceClass.TEMPERATURE,
-        state_class=SensorStateClass.MEASUREMENT,
-        message=indoor.InTargetTemperature,
-    ),
-    SamsungEhsSensorEntityDescription(
-        key=SamsungEhsSensorKey.DHW_TARGET_TEMPERATURE,
-        translation_key=SamsungEhsSensorKey.DHW_TARGET_TEMPERATURE,
-        entity_category=EntityCategory.DIAGNOSTIC,
-        native_unit_of_measurement=UnitOfTemperature.CELSIUS,
-        device_class=SensorDeviceClass.TEMPERATURE,
-        state_class=SensorStateClass.MEASUREMENT,
-        message=indoor.DhwTargetTemperature,
     ),
     SamsungEhsSensorEntityDescription(
         key=SamsungEhsSensorKey.ZONE_1_EXTERNAL_ROOM_TEMPERATURE,

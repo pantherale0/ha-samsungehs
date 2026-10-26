@@ -169,14 +169,6 @@ def test_requested_sensor_descriptions() -> None:
     indoor_expected = {
         SamsungEhsSensorKey.CAPACITY_REQUEST: (0x4211, None),
         SamsungEhsSensorKey.ROOM_TEMPERATURE: (0x4203, UnitOfTemperature.CELSIUS),
-        SamsungEhsSensorKey.ROOM_TARGET_TEMPERATURE: (
-            0x4201,
-            UnitOfTemperature.CELSIUS,
-        ),
-        SamsungEhsSensorKey.DHW_TARGET_TEMPERATURE: (
-            0x4235,
-            UnitOfTemperature.CELSIUS,
-        ),
     }
     indoor_descriptions = {
         description.key: description for description in INDOOR_SENSORS
@@ -207,8 +199,6 @@ def test_diagnostic_entity_translations(file_name: str) -> None:
         "supply_voltage": "Supply Voltage",
         "capacity_request": "Capacity Request",
         "room_temperature": "Room Temperature",
-        "room_target_temperature": "Room Target Temperature",
-        "dhw_target_temperature": "DHW Target Temperature",
     }
     for key, name in expected_names.items():
         assert sensor_translations[key]["name"] == name

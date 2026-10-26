@@ -129,12 +129,6 @@
             "room_temperature": {
                 "name": "Room Temperature"
             },
-            "room_target_temperature": {
-                "name": "Room Target Temperature"
-            },
-            "dhw_target_temperature": {
-                "name": "DHW Target Temperature"
-            },
             "three_way_valve": {
                 "name": "3-Way Valve",
                 "state": {
