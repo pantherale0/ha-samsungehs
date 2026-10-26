@@ -33,6 +33,7 @@ This integration provides support for the following Samsung EHS platforms:
 - **Switch** - Control operational features like Quiet Mode and DHW Disinfection
 - **Number** - Adjust configuration parameters like DHW disinfection schedule and compressor settings
 - **Select** - Choose from predefined options like DHW disinfection day of week and pump modes
+- **Diagnostics** - Download connection and coordinator status to help troubleshoot the integration; connection details and device addresses are redacted
 
 ## External room temperature
 
