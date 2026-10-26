@@ -12,11 +12,13 @@ from homeassistant.components.binary_sensor import (
     BinarySensorEntityDescription,
 )
 from homeassistant.components.binary_sensor.const import BinarySensorDeviceClass
+from homeassistant.const import EntityCategory
 from pysamsungnasa.helpers import Address
 from pysamsungnasa.protocol.enum import (
     AddressClass,
     InOperationMode,
     InThermostatStatus,
+    Outdoor4WayLoad,
     OutdoorCompressorLoad,
     OutdoorOperationStatus,
 )
@@ -40,6 +42,7 @@ class SamsungEhsBinarySensorKey(StrEnum):
     COMPRESSOR_RUNNING = "compressor_running"
     CIRCULATION_PUMP_RUNNING = "circulation_pump_running"
     HP_RUNNING = "hp_running"
+    FOUR_WAY_VALVE = "four_way_valve"
     ZONE_1_EXTERNAL_ROOM_SENSOR_ENABLED = "zone_1_external_room_sensor_enabled"
     ZONE_2_EXTERNAL_ROOM_SENSOR_ENABLED = "zone_2_external_room_sensor_enabled"
     DEFROST = "defrost"
@@ -89,25 +92,32 @@ OUTDOOR_ENTITY_DESCRIPTIONS = (
         ),
         message=outdoor.OutdoorOperationStatusMessage,
     ),
+    SamsungEhsBinarySensorEntityDescription(
+        key=SamsungEhsBinarySensorKey.FOUR_WAY_VALVE,
+        translation_key=SamsungEhsBinarySensorKey.FOUR_WAY_VALVE,
+        entity_category=EntityCategory.DIAGNOSTIC,
+        device_class=BinarySensorDeviceClass.RUNNING,
+        message=outdoor.OutdoorLoad4WayValveMessage,
+        messages_expected_value=Outdoor4WayLoad.ON,
+    ),
 )
 
 # Define entiry descriptions for a indoor unit
 INDOOR_ENTITY_DESCRIPTIONS = (
-    # Disabled until reading this is validated
-    # SamsungEhsBinarySensorEntityDescription(
-    #     key=SamsungEhsBinarySensorKey.ZONE_1_EXTERNAL_ROOM_SENSOR_ENABLED,
-    #     translation_key=SamsungEhsBinarySensorKey.ZONE_1_EXTERNAL_ROOM_SENSOR_ENABLED,
-    #     message=indoor.InRoomTempSensorMessage,
-    #     messages_expected_value=True,
-    #     requires_read=True,
-    # ),
-    # SamsungEhsBinarySensorEntityDescription(
-    #     key=SamsungEhsBinarySensorKey.ZONE_2_EXTERNAL_ROOM_SENSOR_ENABLED,
-    #     translation_key=SamsungEhsBinarySensorKey.ZONE_2_EXTERNAL_ROOM_SENSOR_ENABLED,
-    #     message=indoor.InRoomTempSensorZone2Message,
-    #     messages_expected_value=True,
-    #     requires_read=True,
-    # ),
+    SamsungEhsBinarySensorEntityDescription(
+        key=SamsungEhsBinarySensorKey.ZONE_1_EXTERNAL_ROOM_SENSOR_ENABLED,
+        translation_key=SamsungEhsBinarySensorKey.ZONE_1_EXTERNAL_ROOM_SENSOR_ENABLED,
+        message=indoor.InRoomTempSensorMessage,
+        messages_expected_value=True,
+        requires_read=True,
+    ),
+    SamsungEhsBinarySensorEntityDescription(
+        key=SamsungEhsBinarySensorKey.ZONE_2_EXTERNAL_ROOM_SENSOR_ENABLED,
+        translation_key=SamsungEhsBinarySensorKey.ZONE_2_EXTERNAL_ROOM_SENSOR_ENABLED,
+        message=indoor.InRoomTempSensorZone2Message,
+        messages_expected_value=True,
+        requires_read=True,
+    ),
     SamsungEhsBinarySensorEntityDescription(
         key=SamsungEhsBinarySensorKey.INDOOR_DHW_ON,
         translation_key=SamsungEhsBinarySensorKey.INDOOR_DHW_ON,

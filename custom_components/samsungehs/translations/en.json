@@ -123,6 +123,12 @@
             "water_law_offset": {
                 "name": "Water Law Offset"
             },
+            "capacity_request": {
+                "name": "Capacity Request"
+            },
+            "room_temperature": {
+                "name": "Room Temperature"
+            },
             "three_way_valve": {
                 "name": "3-Way Valve",
                 "state": {
@@ -181,6 +187,70 @@
             "discharge_target_temperature": {
                 "name": "Discharge Target Temperature"
             },
+            "operation_status": {
+                "name": "Operation Status",
+                "state": {
+                    "op_stop": "Stopped",
+                    "op_safety": "Safety",
+                    "op_normal": "Normal",
+                    "op_balance": "Balance",
+                    "op_recovery": "Recovery",
+                    "op_deice": "Defrost",
+                    "op_compdown": "Compressor Down",
+                    "op_prohibit": "Prohibited",
+                    "op_linejig": "Line Jig",
+                    "op_pcbjig": "PCB Jig",
+                    "op_test": "Test",
+                    "op_charge": "Charge",
+                    "op_pumpdown": "Pump Down",
+                    "op_pumpout": "Pump Out",
+                    "op_vaccum": "Vacuum",
+                    "op_caloryjig": "Calory Jig",
+                    "op_pumpdownstop": "Pump Down Stop",
+                    "op_substop": "Sub Stop",
+                    "op_checkpipe": "Check Pipe",
+                    "op_checkref": "Check Refrigerant",
+                    "op_fptjig": "FPT Jig",
+                    "op_nonstop_heat_cool_change": "Nonstop Heat/Cool Change",
+                    "op_auto_inspect": "Auto Inspect",
+                    "op_electric_discharge": "Electric Discharge",
+                    "op_split_deice": "Split Defrost",
+                    "op_inveter_check": "Inverter Check",
+                    "op_nonstop_deice": "Nonstop Defrost",
+                    "op_rem_test": "REM Test",
+                    "op_rating": "Rating",
+                    "op_pc_test": "PC Test",
+                    "op_pumpdown_thermooff": "Pump Down Thermostat Off",
+                    "op_3phase_test": "3-Phase Test",
+                    "op_smartinstall_test": "Smart Install Test",
+                    "op_deice_performance_test": "Defrost Performance Test",
+                    "op_inverter_fan_pba_check": "Inverter Fan PBA Check",
+                    "op_auto_pipe_pairing": "Auto Pipe Pairing",
+                    "op_auto_charge": "Auto Charge"
+                }
+            },
+            "defrost_status": {
+                "name": "Defrost Status",
+                "state": {
+                    "defrost_stage_1": "Defrost Stage 1",
+                    "defrost_stage_2": "Defrost Stage 2",
+                    "defrost_stage_3": "Defrost Stage 3",
+                    "defrost_end_stage": "Defrost End Stage",
+                    "no_defrost_operation": "No Defrost"
+                }
+            },
+            "defrost_stage": {
+                "name": "Defrost Stage"
+            },
+            "discharge_temperature": {
+                "name": "Discharge Temperature"
+            },
+            "outdoor_current": {
+                "name": "Outdoor Current"
+            },
+            "supply_voltage": {
+                "name": "Supply Voltage"
+            },
             "leaving_water_temperature": {
                 "name": "Leaving Water Temperature"
             },
@@ -209,6 +279,9 @@
             },
             "hp_running": {
                 "name": "HP Running"
+            },
+            "four_way_valve": {
+                "name": "4-Way Valve"
             },
             "indoor_dhw_on": {
                 "name": "DHW On"
