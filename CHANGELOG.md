@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.3.2](https://github.com/pantherale0/ha-samsungehs/compare/v1.3.1...v1.3.2) (2026-10-27)
+
+
+### Bug Fixes
+
+* missing icons and diagnostics ([#39](https://github.com/pantherale0/ha-samsungehs/issues/39)) ([15a78fd](https://github.com/pantherale0/ha-samsungehs/commit/15a78fd25b79fca79fc276e59a365b9cafe7e7e3))
+
 ## [1.3.1](https://github.com/pantherale0/ha-samsungehs/compare/v1.3.0...v1.3.1) (2026-10-26)
 
 
