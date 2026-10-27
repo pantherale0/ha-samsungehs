@@ -88,6 +88,19 @@ combined percentage differs from the line-only threshold used by the checker.
 Configure this job as a required repository status check when enabling branch
 protection. The workflow file alone cannot change repository protection settings.
 
+The workflow also uploads `coverage.xml` to [Codecov](https://app.codecov.io/gh/pantherale0/ha-samsungehs).
+Enable this repository in Codecov and install its GitHub app to publish PR
+comments and status checks. Trusted workflow runs authenticate with
+[GitHub OIDC](https://github.com/codecov/codecov-action#using-oidc), so no
+`CODECOV_TOKEN` secret is needed. Fork PRs attempt a tokenless upload. Upload
+errors fail trusted runs but do not fail fork PR test jobs.
+
+`codecov.yml` reports project coverage as informational and checks changed
+integration code at 95%. Changed config-flow and diagnostics code require 100%.
+The local per-module checker remains the required check for the full suite's
+line-coverage targets. Codecov uploads run whenever a report exists, including
+after a failed test or coverage check, to help explain the failure.
+
 The commit-validator tests remain runnable without HA dependencies:
 
 ```bash
