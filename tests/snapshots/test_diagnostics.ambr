@@ -13,21 +13,18 @@
           'attributes': dict({
             '0x607': dict({
               'is_fsv_message': False,
-              'message_id': 1543,
               'message_name': 'Serial Number',
               'unit_of_measurement': None,
               'value': '**REDACTED**',
             }),
             '0x608': dict({
               'is_fsv_message': False,
-              'message_id': 1544,
               'message_name': 'DB Code MiCom Main Message',
               'unit_of_measurement': None,
               'value': '1.0',
             }),
             '0x61a': dict({
               'is_fsv_message': False,
-              'message_id': 1562,
               'message_name': 'Product Model Name',
               'unit_of_measurement': None,
               'value': dict({
@@ -44,21 +41,18 @@
           'attributes': dict({
             '0x607': dict({
               'is_fsv_message': False,
-              'message_id': 1543,
               'message_name': 'Serial Number',
               'unit_of_measurement': None,
               'value': '**REDACTED**',
             }),
             '0x608': dict({
               'is_fsv_message': False,
-              'message_id': 1544,
               'message_name': 'DB Code MiCom Main Message',
               'unit_of_measurement': None,
               'value': '1.0',
             }),
             '0x61a': dict({
               'is_fsv_message': False,
-              'message_id': 1562,
               'message_name': 'Product Model Name',
               'unit_of_measurement': None,
               'value': dict({
@@ -100,21 +94,18 @@
           'attributes': dict({
             '0x607': dict({
               'is_fsv_message': False,
-              'message_id': 1543,
               'message_name': 'Serial Number',
               'unit_of_measurement': None,
               'value': '**REDACTED**',
             }),
             '0x608': dict({
               'is_fsv_message': False,
-              'message_id': 1544,
               'message_name': 'DB Code MiCom Main Message',
               'unit_of_measurement': None,
               'value': '1.0',
             }),
             '0x61a': dict({
               'is_fsv_message': False,
-              'message_id': 1562,
               'message_name': 'Product Model Name',
               'unit_of_measurement': None,
               'value': dict({
@@ -131,21 +122,18 @@
           'attributes': dict({
             '0x607': dict({
               'is_fsv_message': False,
-              'message_id': 1543,
               'message_name': 'Serial Number',
               'unit_of_measurement': None,
               'value': '**REDACTED**',
             }),
             '0x608': dict({
               'is_fsv_message': False,
-              'message_id': 1544,
               'message_name': 'DB Code MiCom Main Message',
               'unit_of_measurement': None,
               'value': '1.0',
             }),
             '0x61a': dict({
               'is_fsv_message': False,
-              'message_id': 1562,
               'message_name': 'Product Model Name',
               'unit_of_measurement': None,
               'value': dict({
@@ -194,21 +182,18 @@
           'attributes': dict({
             '0x607': dict({
               'is_fsv_message': False,
-              'message_id': 1543,
               'message_name': 'Serial Number',
               'unit_of_measurement': None,
               'value': '**REDACTED**',
             }),
             '0x608': dict({
               'is_fsv_message': False,
-              'message_id': 1544,
               'message_name': 'DB Code MiCom Main Message',
               'unit_of_measurement': None,
               'value': '1.0',
             }),
             '0x61a': dict({
               'is_fsv_message': False,
-              'message_id': 1562,
               'message_name': 'Product Model Name',
               'unit_of_measurement': None,
               'value': dict({

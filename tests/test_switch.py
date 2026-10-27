@@ -7,7 +7,7 @@ from homeassistant.core import HomeAssistant
 
 from . import Report, entity_id
 
-pytestmark = pytest.mark.usefixtures("integration")
+pytestmark = [pytest.mark.usefixtures("integration"), pytest.mark.platforms("switch")]
 
 
 @pytest.mark.parametrize(

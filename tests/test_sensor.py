@@ -16,6 +16,8 @@ from syrupy.assertion import SnapshotAssertion
 
 from . import Report, entity_id
 
+pytestmark = pytest.mark.platforms("sensor")
+
 
 @pytest.mark.parametrize(
     "platform",

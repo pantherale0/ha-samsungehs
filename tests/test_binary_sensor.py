@@ -5,6 +5,8 @@ from homeassistant.core import HomeAssistant
 
 from . import Report, entity_id
 
+pytestmark = pytest.mark.platforms("binary_sensor")
+
 
 @pytest.mark.usefixtures("integration")
 @pytest.mark.parametrize(

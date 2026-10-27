@@ -4,6 +4,7 @@ from collections.abc import Callable, Generator
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
+from homeassistant.const import Platform
 from homeassistant.core import HomeAssistant
 from pysamsungnasa import SamsungNasa
 from pysamsungnasa.protocol.factory.messages import MESSAGE_PARSERS
@@ -19,9 +20,28 @@ from pytest_homeassistant_custom_component.common import (
 from pytest_homeassistant_custom_component.syrupy import HomeAssistantSnapshotExtension
 from syrupy.assertion import SnapshotAssertion
 
+from custom_components.samsungehs import PLATFORMS
 from custom_components.samsungehs.const import DOMAIN
 
 from . import DEVICE_URL, Report
+
+
+def pytest_addoption(parser: pytest.Parser) -> None:
+    """Allow focused tests to be rerun with every integration platform."""
+    parser.addoption(
+        "--all-platforms",
+        action="store_true",
+        help="Load every Samsung EHS platform, including in focused platform tests",
+    )
+
+
+@pytest.fixture
+def platforms(request: pytest.FixtureRequest) -> list[Platform]:
+    """Select platforms explicitly, keeping full setup for lifecycle tests."""
+    marker = request.node.get_closest_marker("platforms")
+    if marker is None or request.config.getoption("--all-platforms"):
+        return PLATFORMS
+    return [Platform(name) for name in marker.args]
 
 
 @pytest.fixture(autouse=True)
@@ -100,11 +120,13 @@ def nasa_client_factory() -> Callable[[str, list[str]], SamsungNasa]:
 @pytest.fixture
 def mock_nasa(
     nasa_client_factory: Callable[[str, list[str]], SamsungNasa],
+    platforms: list[Platform],
 ) -> Generator[MagicMock]:
     """Patch the integration's client constructor and retain real device callbacks."""
-    with patch(
-        "custom_components.samsungehs.SamsungNasa", autospec=True
-    ) as constructor:
+    with (
+        patch("custom_components.samsungehs.PLATFORMS", platforms),
+        patch("custom_components.samsungehs.SamsungNasa", autospec=True) as constructor,
+    ):
         constructor.return_value = nasa_client_factory(DEVICE_URL, ["200000", "100000"])
         yield constructor
 

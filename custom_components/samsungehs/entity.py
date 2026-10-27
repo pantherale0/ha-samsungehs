@@ -150,9 +150,8 @@ class SamsungEhsEntity(CoordinatorEntity[SamsungEhsDataUpdateCoordinator]):
         if self._message:
             self._add_first_run_message(self._message)
 
-        self._device.add_device_callback(self.async_schedule_update_ha_state)
-
-    async def async_will_remove_from_hass(self) -> None:
-        """Call when the entity is about to be removed from HASS."""
-        await super().async_will_remove_from_hass()
-        self._device.remove_device_callback(self.async_schedule_update_ha_state)
+        device = self._device
+        device.add_device_callback(self.async_schedule_update_ha_state)
+        self.async_on_remove(
+            partial(device.remove_device_callback, self.async_schedule_update_ha_state)
+        )

@@ -12,7 +12,7 @@ from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 from . import DOMAIN
 
-pytestmark = pytest.mark.usefixtures("integration")
+pytestmark = [pytest.mark.usefixtures("integration"), pytest.mark.platforms("climate")]
 
 
 def indoor_device(hass: HomeAssistant) -> dr.DeviceEntry:
@@ -39,7 +39,6 @@ async def test_read(hass: HomeAssistant, mock_nasa: MagicMock) -> None:
         return_response=True,
     )
     assert result == {
-        "message_id": 0x4201,
         "message_name": "Indoor Target Temperature",
         "unit_of_measurement": "C",
         "value": 21.0,

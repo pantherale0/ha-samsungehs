@@ -8,7 +8,7 @@ from homeassistant.exceptions import HomeAssistantError
 
 from . import Report, entity_id
 
-pytestmark = pytest.mark.usefixtures("integration")
+pytestmark = [pytest.mark.usefixtures("integration"), pytest.mark.platforms("select")]
 
 
 @pytest.mark.parametrize(

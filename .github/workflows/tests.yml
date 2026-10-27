@@ -30,7 +30,7 @@ jobs:
       - name: Check dependency compatibility
         run: python -m pip check
       - name: Run tests
-        run: python -m pytest --cov --cov-report=term-missing --cov-report=json:coverage.json --cov-report=xml
+        run: python -m pytest --durations=10 --cov --cov-report=term-missing --cov-report=json:coverage.json --cov-report=xml
       - name: Enforce per-module coverage
         run: python scripts/check_coverage.py coverage.json
       - name: Upload coverage to Codecov

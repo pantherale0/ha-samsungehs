@@ -12,6 +12,8 @@ from pytest_homeassistant_custom_component.components.diagnostics import (
 from pytest_homeassistant_custom_component.typing import ClientSessionGenerator
 from syrupy.assertion import SnapshotAssertion
 
+pytestmark = pytest.mark.platforms()
+
 
 @pytest.mark.parametrize("connected", [True, False])
 async def test_diagnostics(

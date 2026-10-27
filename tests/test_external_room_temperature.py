@@ -12,6 +12,8 @@ from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 from . import DOMAIN
 
+pytestmark = pytest.mark.platforms()
+
 
 async def test_registered_before_entry(hass: HomeAssistant) -> None:
     """Integration actions register without any loaded device."""

@@ -4,6 +4,7 @@ asyncio_default_fixture_loop_scope = "function"
 addopts = "-p no:respx --strict-markers --disable-socket --allow-unix-socket"
 pythonpath = ["."]
 testpaths = ["tests"]
+markers = ["platforms(*names): HA platforms loaded by the mocked NASA connection"]
 
 [tool.coverage.run]
 source = ["custom_components.samsungehs"]

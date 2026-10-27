@@ -15,6 +15,8 @@ from pytest_homeassistant_custom_component.common import (
 
 from . import Report, entity_id
 
+pytestmark = pytest.mark.platforms("sensor")
+
 
 @pytest.mark.parametrize(
     ("count", "batches"),

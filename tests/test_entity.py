@@ -88,3 +88,13 @@ async def test_disable_one_energy_sensor(
         hass.states.get(entity_id(hass, "sensor", "energy_generation", "100000")).state
         == "12.0"
     )
+
+
+async def test_unload_missing_device(
+    hass: HomeAssistant, integration: MockConfigEntry, mock_nasa: MagicMock
+) -> None:
+    """Unload detaches callbacks even after a device disappears from the cache."""
+    device = mock_nasa.return_value.devices.pop("200000")
+    assert device._device_callbacks
+    assert await hass.config_entries.async_unload(integration.entry_id)
+    assert not device._device_callbacks

@@ -66,9 +66,11 @@ aligned with `manifest.json`.
 
 Tests load real HA entries, subentries, entities, registries, and services.
 `tests/conftest.py` mocks NASA I/O while preserving real library device caches,
-parsed messages, and callbacks. Use `integration` to load every platform,
-`indoor_reports` for the fixed indoor fixture, and `report` to deliver subsequent
-message payloads. A `None` payload represents a parsed unknown value. External
+parsed messages, and callbacks. Use `integration` to load the platforms selected
+by a module's `pytest.mark.platforms(...)` marker. Unmarked lifecycle and registry
+tests load all seven platforms. Use `indoor_reports` for the fixed indoor fixture
+and `report` to deliver subsequent message payloads. A `None` payload represents
+a parsed unknown value. External
 network access is blocked by the pytest plugin. HTTP diagnostics tests use
 HA's local test server.
 
@@ -77,9 +79,24 @@ Assert published HA states and outgoing device commands. Exercise actions with
 for scheduled updates. Keep literal expected message IDs and payloads in tests.
 Do not replace HA entries or coordinators with namespace objects.
 
+Keep platform tests focused on their own platform. For example, mark climate
+tests with `pytest.mark.platforms("climate")`. Actions that do not require entities
+can use `pytest.mark.platforms()` to register integration services without loading
+entity platforms. The real coordinator, config entry, and HA cleanup checks still
+run. To check a focused module with every platform, add `--all-platforms`:
+
+```bash
+.venv/bin/python -m pytest tests/test_water_heater.py --all-platforms
+.venv/bin/python -m pytest --durations=20
+```
+
 Each platform has a registry/state snapshot in `tests/snapshots`. To update an
 intentional entity change, run the affected test with `--snapshot-update`, then
 review the snapshot diff. Do not update snapshots merely to make CI pass.
+Install `requirements-test.txt` before updating snapshots, and confirm that
+`requirements.txt` and `manifest.json` require the same NASA library version.
+GitHub tests a PR's merge commit, which may include a dependency update from the
+target branch that is absent from an older local environment.
 
 The **Home Assistant integration tests** CI job runs the suite and checks each
 module's line coverage. Config flow and diagnostics require 100%. Other modules

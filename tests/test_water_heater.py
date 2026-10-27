@@ -13,7 +13,10 @@ from pysamsungnasa.protocol.factory.messages.indoor import (
 
 from . import entity_id
 
-pytestmark = pytest.mark.usefixtures("indoor_reports")
+pytestmark = [
+    pytest.mark.usefixtures("indoor_reports"),
+    pytest.mark.platforms("water_heater"),
+]
 
 
 async def test_readings(hass: HomeAssistant) -> None:

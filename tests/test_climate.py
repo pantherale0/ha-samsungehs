@@ -12,7 +12,10 @@ from pysamsungnasa.protocol.factory.messages.outdoor import (
 
 from . import Report, entity_id
 
-pytestmark = pytest.mark.usefixtures("indoor_reports")
+pytestmark = [
+    pytest.mark.usefixtures("indoor_reports"),
+    pytest.mark.platforms("climate"),
+]
 
 
 @pytest.mark.parametrize(

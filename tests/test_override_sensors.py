@@ -6,6 +6,8 @@ from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 from . import Report, entity_id
 
+pytestmark = pytest.mark.platforms("sensor", "binary_sensor")
+
 
 @pytest.mark.usefixtures("integration")
 @pytest.mark.parametrize(
