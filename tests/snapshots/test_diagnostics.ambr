@@ -1,0 +1,223 @@
+# serializer version: 1
+# name: test_diagnostics[False]
+  dict({
+    'config_entry': dict({
+      'data': dict({
+        'device': '**REDACTED**',
+      }),
+      'minor_version': 1,
+      'options': dict({
+      }),
+      'subentries': list([
+        dict({
+          'attributes': dict({
+            '0x607': dict({
+              'is_fsv_message': False,
+              'message_name': 'Serial Number',
+              'unit_of_measurement': None,
+              'value': '**REDACTED**',
+            }),
+            '0x608': dict({
+              'is_fsv_message': False,
+              'message_name': 'DB Code MiCom Main Message',
+              'unit_of_measurement': None,
+              'value': '1.0',
+            }),
+            '0x61a': dict({
+              'is_fsv_message': False,
+              'message_name': 'Product Model Name',
+              'unit_of_measurement': None,
+              'value': dict({
+                'model_name': 'AE080',
+                'model_type': 'EHS',
+              }),
+            }),
+          }),
+          'data': dict({
+          }),
+          'type': 'device',
+        }),
+        dict({
+          'attributes': dict({
+            '0x607': dict({
+              'is_fsv_message': False,
+              'message_name': 'Serial Number',
+              'unit_of_measurement': None,
+              'value': '**REDACTED**',
+            }),
+            '0x608': dict({
+              'is_fsv_message': False,
+              'message_name': 'DB Code MiCom Main Message',
+              'unit_of_measurement': None,
+              'value': '1.0',
+            }),
+            '0x61a': dict({
+              'is_fsv_message': False,
+              'message_name': 'Product Model Name',
+              'unit_of_measurement': None,
+              'value': dict({
+                'model_name': 'AE080',
+                'model_type': 'EHS',
+              }),
+            }),
+          }),
+          'data': dict({
+          }),
+          'type': 'device',
+        }),
+      ]),
+      'version': 2,
+    }),
+    'runtime_data': dict({
+      'client': dict({
+        'connected': False,
+        'device_count': 2,
+      }),
+      'coordinator': dict({
+        'last_update_success': True,
+        'update_interval_seconds': 15.0,
+      }),
+    }),
+  })
+# ---
+# name: test_diagnostics[True]
+  dict({
+    'config_entry': dict({
+      'data': dict({
+        'device': '**REDACTED**',
+      }),
+      'minor_version': 1,
+      'options': dict({
+      }),
+      'subentries': list([
+        dict({
+          'attributes': dict({
+            '0x607': dict({
+              'is_fsv_message': False,
+              'message_name': 'Serial Number',
+              'unit_of_measurement': None,
+              'value': '**REDACTED**',
+            }),
+            '0x608': dict({
+              'is_fsv_message': False,
+              'message_name': 'DB Code MiCom Main Message',
+              'unit_of_measurement': None,
+              'value': '1.0',
+            }),
+            '0x61a': dict({
+              'is_fsv_message': False,
+              'message_name': 'Product Model Name',
+              'unit_of_measurement': None,
+              'value': dict({
+                'model_name': 'AE080',
+                'model_type': 'EHS',
+              }),
+            }),
+          }),
+          'data': dict({
+          }),
+          'type': 'device',
+        }),
+        dict({
+          'attributes': dict({
+            '0x607': dict({
+              'is_fsv_message': False,
+              'message_name': 'Serial Number',
+              'unit_of_measurement': None,
+              'value': '**REDACTED**',
+            }),
+            '0x608': dict({
+              'is_fsv_message': False,
+              'message_name': 'DB Code MiCom Main Message',
+              'unit_of_measurement': None,
+              'value': '1.0',
+            }),
+            '0x61a': dict({
+              'is_fsv_message': False,
+              'message_name': 'Product Model Name',
+              'unit_of_measurement': None,
+              'value': dict({
+                'model_name': 'AE080',
+                'model_type': 'EHS',
+              }),
+            }),
+          }),
+          'data': dict({
+          }),
+          'type': 'device',
+        }),
+      ]),
+      'version': 2,
+    }),
+    'runtime_data': dict({
+      'client': dict({
+        'connected': True,
+        'device_count': 2,
+      }),
+      'coordinator': dict({
+        'last_update_success': True,
+        'update_interval_seconds': 15.0,
+      }),
+    }),
+  })
+# ---
+# name: test_missing_device
+  dict({
+    'config_entry': dict({
+      'data': dict({
+        'device': '**REDACTED**',
+      }),
+      'minor_version': 1,
+      'options': dict({
+      }),
+      'subentries': list([
+        dict({
+          'attributes': dict({
+          }),
+          'data': dict({
+          }),
+          'type': 'device',
+        }),
+        dict({
+          'attributes': dict({
+            '0x607': dict({
+              'is_fsv_message': False,
+              'message_name': 'Serial Number',
+              'unit_of_measurement': None,
+              'value': '**REDACTED**',
+            }),
+            '0x608': dict({
+              'is_fsv_message': False,
+              'message_name': 'DB Code MiCom Main Message',
+              'unit_of_measurement': None,
+              'value': '1.0',
+            }),
+            '0x61a': dict({
+              'is_fsv_message': False,
+              'message_name': 'Product Model Name',
+              'unit_of_measurement': None,
+              'value': dict({
+                'model_name': 'AE080',
+                'model_type': 'EHS',
+              }),
+            }),
+          }),
+          'data': dict({
+          }),
+          'type': 'device',
+        }),
+      ]),
+      'version': 2,
+    }),
+    'runtime_data': dict({
+      'client': dict({
+        'connected': True,
+        'device_count': 1,
+      }),
+      'coordinator': dict({
+        'last_update_success': True,
+        'update_interval_seconds': None,
+      }),
+    }),
+  })
+# ---

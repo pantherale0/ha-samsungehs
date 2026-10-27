@@ -1,5 +1,7 @@
 """Services for Samsung EHS integration."""
 
+from __future__ import annotations
+
 import logging
 import math
 from enum import StrEnum
@@ -153,8 +155,8 @@ async def async_set_external_room_temperature_service(call: ServiceCall) -> None
         ) from err
 
 
-def _get_device_from_call(call: ServiceCall) -> dr.AnyDeviceEntry:
-    """Get device from service call."""
+def _get_service_target(call: ServiceCall) -> tuple[SamsungEhsConfigEntry, str]:
+    """Resolve a device action to a loaded connection and a known bus address."""
     device_id = call.data.get(ATTR_DEVICE_ID)
     if not device_id:
         raise ServiceValidationError(
@@ -171,14 +173,28 @@ def _get_device_from_call(call: ServiceCall) -> dr.AnyDeviceEntry:
             translation_placeholders={"device_id": device_id},
         )
 
-    return device
+    config_entry: SamsungEhsConfigEntry = service.async_get_config_entry(
+        call.hass, DOMAIN, device.config_entry_id
+    )
+    address = _get_device_address(device)
+    if address is None or address not in config_entry.runtime_data.client.devices:
+        raise ServiceValidationError(
+            translation_domain=DOMAIN,
+            translation_key="invalid_device",
+            translation_placeholders={
+                "attribute": str(call.data["attribute"]),
+                "device_id": device.id,
+            },
+        )
+    return config_entry, address
 
 
 def _get_device_address(device: dr.AnyDeviceEntry) -> str | None:
     """Get device address from device entry."""
     for identifier in device.identifiers:
         if identifier[0] == DOMAIN:
-            return identifier[1].split("_")[1]
+            _, separator, address = identifier[1].rpartition("_")
+            return address if separator else None
     return None
 
 
@@ -196,23 +212,8 @@ def _get_attribute_class_by_id(attribute_id: int) -> type[BaseMessage]:
 
 async def async_read_attribute_service(call: ServiceCall) -> dict:
     """Handle read attribute service call."""
-    config_entry: SamsungEhsConfigEntry | None = None
-    address: str | None = None
     attribute_to_read: int = call.data["attribute"]  # (format in 0xXXXX)
-    device: dr.AnyDeviceEntry = _get_device_from_call(call)
-    config_entry = call.hass.config_entries.async_get_entry(device.config_entry_id)
-
-    address = _get_device_address(device)
-
-    if not config_entry or not address:
-        raise ServiceValidationError(
-            translation_domain=DOMAIN,
-            translation_key="invalid_device",
-            translation_placeholders={
-                "attribute": str(attribute_to_read),
-                "device_id": device.id,
-            },
-        )
+    config_entry, address = _get_service_target(call)
 
     attribute = _get_attribute_class_by_id(attribute_to_read)
     message = await config_entry.runtime_data.client.devices[address].get_attribute(
@@ -230,24 +231,10 @@ async def async_read_attribute_service(call: ServiceCall) -> dict:
 
 async def async_write_attribute_service(call: ServiceCall) -> None:
     """Handle write attribute service call."""
-    config_entry: SamsungEhsConfigEntry | None = None
-    address: str | None = None
     attribute_to_write: int = call.data["attribute"]  # (format in 0xXXXX)
     value_to_write: int = call.data["value"]
-    device: dr.AnyDeviceEntry = _get_device_from_call(call)
-    config_entry = call.hass.config_entries.async_get_entry(device.config_entry_id)
+    config_entry, address = _get_service_target(call)
 
-    address = _get_device_address(device)
-
-    if not config_entry or not address:
-        raise ServiceValidationError(
-            translation_domain=DOMAIN,
-            translation_key="invalid_device",
-            translation_placeholders={
-                "attribute": str(attribute_to_write),
-                "device_id": device.id,
-            },
-        )
     attribute = _get_attribute_class_by_id(attribute_to_write)
     await config_entry.runtime_data.client.devices[address].write_attribute(
         attribute, value_to_write

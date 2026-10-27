@@ -7,6 +7,12 @@ from dataclasses import dataclass
 from enum import Enum, StrEnum
 from typing import TYPE_CHECKING, Any
 
+from homeassistant.components.sensor import (
+    SensorDeviceClass,
+    SensorEntity,
+    SensorEntityDescription,
+    SensorStateClass,
+)
 from homeassistant.const import (
     PERCENTAGE,
     EntityCategory,
@@ -15,12 +21,6 @@ from homeassistant.const import (
     UnitOfEnergy,
     UnitOfPower,
     UnitOfTemperature,
-)
-from homeassistant.components.sensor import (
-    SensorDeviceClass,
-    SensorEntity,
-    SensorEntityDescription,
-    SensorStateClass,
 )
 from pysamsungnasa.helpers import Address
 from pysamsungnasa.protocol.enum import (
@@ -241,14 +241,6 @@ OUTDOOR_ENTITY_DESCRIPTIONS: tuple[SamsungEhsSensorEntityDescription, ...] = (
         device_class=SensorDeviceClass.POWER,
         state_class=SensorStateClass.MEASUREMENT,
     ),
-    # SamsungEhsSensorEntityDescription(
-    #     key=SamsungEhsSensorKey.WATER_PRESSURE,
-    #     translation_key=SamsungEhsSensorKey.WATER_PRESSURE,
-    #     native_unit_of_measurement="bar",
-    #     device_class=SensorDeviceClass.PRESSURE,
-    #     state_class=SensorStateClass.MEASUREMENT,
-    #     message=0x82FE,
-    # ),
     SamsungEhsSensorEntityDescription(
         key=SamsungEhsSensorKey.COMPRESSOR_FREQUENCY,
         translation_key=SamsungEhsSensorKey.COMPRESSOR_FREQUENCY,
@@ -592,8 +584,6 @@ class SamsungEhsSensor(SamsungEhsEntity, SensorEntity):
     @property
     def native_value(self) -> str | int | float | None:
         """Return the native value."""
-        if self._device is None:
-            return None
         if self.entity_description.value_fn is not None:
             return self.entity_description.value_fn(self._device)
         if self.entity_description.message is not None:
@@ -639,8 +629,6 @@ class SamsungEhsSensor(SamsungEhsEntity, SensorEntity):
         """Return extra state attributes."""
         if self.entity_description.key is not SamsungEhsSensorKey.AVAILABLE_ATTRIBUTES:
             return {}
-        if self._device is None:
-            return {}
         return {
             msg_number: {
                 "name": value.MESSAGE_NAME,
@@ -659,10 +647,6 @@ class SamsungEhsSensor(SamsungEhsEntity, SensorEntity):
             self.entity_description.message.MESSAGE_ID in (0x4426, 0x4427)
             and self._device.device_type == AddressClass.OUTDOOR
         ):
-            self.coordinator.config_entry.runtime_data.client.parser.add_packet_listener(
-                0x4426, self._device.handle_packet
-            )
-            self.coordinator.config_entry.runtime_data.client.parser.add_packet_listener(
-                0x4427, self._device.handle_packet
-            )
+            self._subscribe_packet(0x4426, self._device.handle_packet)
+            self._subscribe_packet(0x4427, self._device.handle_packet)
         return await super().async_added_to_hass()

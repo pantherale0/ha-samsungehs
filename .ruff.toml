@@ -29,16 +29,9 @@ max-complexity = 25
 "scripts/check_commits.py" = ["INP001", "S603", "S607", "T201"]
 # The dependency-free test runner uses unittest assertions and local subprocesses.
 "tests/test_check_commits.py" = ["PT009", "S603", "S607"]
-# Pytest tests use plain assertions against literal expected values.
-"tests/test_fsv_entities.py" = ["S101", "PLR2004"]
-"tests/test_water_law_sensors.py" = ["S101"]
-
-"tests/test_external_room_temperature.py" = ["S101"]
-
-"tests/test_diagnostics.py" = ["S101"]
-
-"tests/test_override_sensors.py" = ["S101", "PLR2004"]
-
-"tests/test_valve_defrost_tank.py" = ["S101"]
-
-"tests/test_config_flow.py" = ["S101"]
+# Pytest fixtures use injected arguments, literal expectations and library internals.
+"tests/**" = ["S101", "PLR2004", "PLR0913", "ARG001", "SLF001"]
+# This command reports per-module coverage failures to CI.
+"scripts/check_coverage.py" = ["INP001", "T201"]
+# HA callback signatures include framework arguments even when unused.
+"custom_components/samsungehs/*.py" = ["ARG001", "ARG002", "ARG003"]

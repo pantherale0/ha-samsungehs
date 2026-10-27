@@ -48,13 +48,99 @@ Use [black](https://github.com/ambv/black) to make sure the code follows the sty
 
 ## Test your code modification
 
-This custom component is based on [samsungehs template](https://github.com/pantherale0/samsungehs).
+Use Python from `.python-version` and install the test dependencies in a virtual
+environment:
 
-It comes with development environment in a container, easy to launch
-if you use Visual Studio Code. With this container you will have a stand alone
-Home Assistant instance running and already configured with the included
-[`configuration.yaml`](./config/configuration.yaml)
-file.
+```bash
+python3 -m venv .venv
+.venv/bin/python -m pip install -r requirements-test.txt
+.venv/bin/python -m pip check
+.venv/bin/python -m pytest --cov --cov-report=term-missing --cov-report=json:coverage.json
+.venv/bin/python scripts/check_coverage.py coverage.json
+```
+
+The suite uses `pytest-homeassistant-custom-component` with Home Assistant
+2026.10.4. Upgrade the plugin and HA together. The plugin supplies compatible
+pytest and asyncio dependencies. Keep the integration's `pysamsungnasa` version
+aligned with `manifest.json`.
+
+Tests load real HA entries, subentries, entities, registries, and services.
+`tests/conftest.py` mocks NASA I/O while preserving real library device caches,
+parsed messages, and callbacks. Use `integration` to load the platforms selected
+by a module's `pytest.mark.platforms(...)` marker. Unmarked lifecycle and registry
+tests load all seven platforms. Use `indoor_reports` for the fixed indoor fixture
+and `report` to deliver subsequent message payloads. A `None` payload represents
+a parsed unknown value. External
+network access is blocked by the pytest plugin. HTTP diagnostics tests use
+HA's local test server.
+
+Assert published HA states and outgoing device commands. Exercise actions with
+`hass.services.async_call` and flows with HA's flow managers. Use simulated time
+for scheduled updates. Keep literal expected message IDs and payloads in tests.
+Do not replace HA entries or coordinators with namespace objects.
+
+Keep platform tests focused on their own platform. For example, mark climate
+tests with `pytest.mark.platforms("climate")`. Actions that do not require entities
+can use `pytest.mark.platforms()` to register integration services without loading
+entity platforms. The real coordinator, config entry, and HA cleanup checks still
+run. To check a focused module with every platform, add `--all-platforms`:
+
+```bash
+.venv/bin/python -m pytest tests/test_water_heater.py --all-platforms
+.venv/bin/python -m pytest --durations=20
+```
+
+Each platform has a registry/state snapshot in `tests/snapshots`. To update an
+intentional entity change, run the affected test with `--snapshot-update`, then
+review the snapshot diff. Do not update snapshots merely to make CI pass.
+Install `requirements-test.txt` before updating snapshots, and confirm that
+`requirements.txt` and `manifest.json` require the same NASA library version.
+GitHub tests a PR's merge commit, which may include a dependency update from the
+target branch that is absent from an older local environment.
+
+The **Home Assistant integration tests** CI job runs the suite and checks each
+module's line coverage. Config flow and diagnostics require 100%. Other modules
+require more than 95%. The coverage table also reports branch coverage. Its
+combined percentage differs from the line-only threshold used by the checker.
+Configure this job as a required repository status check when enabling branch
+protection. The workflow file alone cannot change repository protection settings.
+
+The workflow also uploads `coverage.xml` to [Codecov](https://app.codecov.io/gh/pantherale0/ha-samsungehs).
+Enable this repository in Codecov and install its GitHub app to publish PR
+comments and status checks. Trusted workflow runs authenticate with
+[GitHub OIDC](https://github.com/codecov/codecov-action#using-oidc), so no
+`CODECOV_TOKEN` secret is needed. Fork PRs attempt a tokenless upload. Upload
+errors fail trusted runs but do not fail fork PR test jobs.
+
+`codecov.yml` reports project coverage as informational and checks changed
+integration code at 95%. Changed config-flow and diagnostics code require 100%.
+The local per-module checker remains the required check for the full suite's
+line-coverage targets. Codecov uploads run whenever a report exists, including
+after a failed test or coverage check, to help explain the failure.
+
+The commit-validator tests remain runnable without HA dependencies:
+
+```bash
+python -m unittest discover -s tests -p 'test_check_commits.py'
+```
+
+### Move to pytest-home-assistant when released
+
+Use a fresh virtual environment for the switch. Replace the current plugin
+dependency with a published `pytest-home-assistant` release that matches the
+chosen HA version. Do not install both plugins together.
+
+Replace helper import prefixes `pytest_homeassistant_custom_component` with
+`pytest_homeassistant`. Remove the `custom_integrations` wrapper fixture because
+the new `hass` fixture enables custom integrations by default. Keep the explicit
+snapshot extension and verify its snapshots. The pytest configuration already
+sets function-scoped loops and disables respx's standalone plugin.
+
+Run the full suite, per-module coverage check, and `pytest --trace-config` in the
+new environment before switching CI. Check dependency pins and Python minimums
+against the released package. Avoid import fallbacks or permanent compatibility
+wrappers. See the [test-suite proposal](docs/test-suite-proposal.md) for the
+research and the upstream package references.
 
 ## Release process
 

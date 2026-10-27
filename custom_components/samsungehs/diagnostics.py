@@ -6,6 +6,7 @@ from typing import TYPE_CHECKING, Any
 
 from homeassistant.const import CONF_DEVICE, CONF_HOST, CONF_PORT
 from homeassistant.helpers.redact import async_redact_data
+from pysamsungnasa.protocol.factory.messages.basic import SerialNumber
 
 if TYPE_CHECKING:
     from homeassistant.core import HomeAssistant
@@ -28,7 +29,11 @@ async def async_get_config_entry_diagnostics(
         if device is None:
             return {}
         return {
-            hex(attribute_id): attribute.as_dict
+            hex(attribute_id): (
+                attribute.as_dict | {"value": "**REDACTED**"}
+                if attribute_id == SerialNumber.MESSAGE_ID
+                else attribute.as_dict
+            )
             for attribute_id, attribute in device.attributes.items()
         }
 

@@ -1,111 +1,53 @@
-"""Tests for Samsung EHS diagnostics."""
+"""Diagnostics are exercised through HA's authenticated HTTP endpoint."""
 
-import asyncio
-from datetime import timedelta
-from types import SimpleNamespace
+import json
+from unittest.mock import MagicMock
 
-from custom_components.samsungehs.diagnostics import (
-    async_get_config_entry_diagnostics,
+import pytest
+from homeassistant.core import HomeAssistant
+from pytest_homeassistant_custom_component.common import MockConfigEntry
+from pytest_homeassistant_custom_component.components.diagnostics import (
+    get_diagnostics_for_config_entry,
 )
+from pytest_homeassistant_custom_component.typing import ClientSessionGenerator
+from syrupy.assertion import SnapshotAssertion
+
+pytestmark = pytest.mark.platforms()
 
 
-def test_diagnostics_redact_connection_and_device_identifiers() -> None:
-    """Diagnostics include attributes without exposing device addresses."""
-    message = SimpleNamespace(
-        as_dict={
-            "message_id": 0x1234,
-            "message_name": "Example",
-            "unit_of_measurement": "C",
-            "value": 21.4,
-            "is_fsv_message": False,
-        }
-    )
-    device = SimpleNamespace(address="ABC123", attributes={0x1234: message})
-    entry = SimpleNamespace(
-        data={"device": "******192.0.2.1:1234"},
-        options={"host": "192.0.2.1", "port": 1234},
-        version=2,
-        minor_version=1,
-        subentries={
-            "device": SimpleNamespace(
-                subentry_type="device",
-                data={},
-                unique_id="ABC123",
-                title="ABC123",
-            )
-        },
-        runtime_data=SimpleNamespace(
-            client=SimpleNamespace(
-                client=SimpleNamespace(is_connected=True),
-                devices={"ABC123": device},
-            ),
-            coordinator=SimpleNamespace(
-                last_update_success=True,
-                update_interval=timedelta(seconds=15),
-            ),
-        ),
-    )
-
-    diagnostics = asyncio.run(async_get_config_entry_diagnostics(None, entry))
-
-    assert diagnostics == {
-        "config_entry": {
-            "version": 2,
-            "minor_version": 1,
-            "data": {"device": "**REDACTED**"},
-            "options": {"host": "**REDACTED**", "port": "**REDACTED**"},
-            "subentries": [
-                {
-                    "type": "device",
-                    "data": {},
-                    "attributes": {
-                        "0x1234": {
-                            "message_id": 0x1234,
-                            "message_name": "Example",
-                            "unit_of_measurement": "C",
-                            "value": 21.4,
-                            "is_fsv_message": False,
-                        }
-                    },
-                }
-            ],
-        },
-        "runtime_data": {
-            "client": {"connected": True, "device_count": 1},
-            "coordinator": {
-                "last_update_success": True,
-                "update_interval_seconds": 15.0,
-            },
-        },
-    }
+@pytest.mark.parametrize("connected", [True, False])
+async def test_diagnostics(
+    hass: HomeAssistant,
+    hass_client: ClientSessionGenerator,
+    integration: MockConfigEntry,
+    mock_nasa: MagicMock,
+    snapshot: SnapshotAssertion,
+    *,
+    connected: bool,
+) -> None:
+    """Identity values are redacted while useful runtime data remains."""
+    mock_nasa.return_value.client._is_connected = connected
+    original_data = dict(integration.data)
+    data = await get_diagnostics_for_config_entry(hass, hass_client, integration)
+    serialized = json.dumps(data)
+    for private in ("192.0.2.1", "8888", "200000", "100000", "TEST-SERIAL"):
+        assert private not in serialized
+    assert data == snapshot
+    assert dict(integration.data) == original_data
 
 
-def test_diagnostics_handles_missing_device() -> None:
-    """Diagnostics still load when a configured device is not connected."""
-    entry = SimpleNamespace(
-        data={},
-        options={},
-        version=2,
-        minor_version=1,
-        subentries={
-            "device": SimpleNamespace(
-                subentry_type="device",
-                data={},
-                unique_id="ABC123",
-            )
-        },
-        runtime_data=SimpleNamespace(
-            client=SimpleNamespace(
-                client=SimpleNamespace(is_connected=False),
-                devices={},
-            ),
-            coordinator=SimpleNamespace(
-                last_update_success=False,
-                update_interval=timedelta(seconds=15),
-            ),
-        ),
-    )
-
-    diagnostics = asyncio.run(async_get_config_entry_diagnostics(None, entry))
-
-    assert diagnostics["config_entry"]["subentries"][0]["attributes"] == {}
+async def test_missing_device(
+    hass: HomeAssistant,
+    hass_client: ClientSessionGenerator,
+    integration: MockConfigEntry,
+    mock_nasa: MagicMock,
+    snapshot: SnapshotAssertion,
+) -> None:
+    """A configured device may disappear before diagnostics are requested."""
+    device = mock_nasa.return_value.devices.pop("200000")
+    integration.runtime_data.coordinator.update_interval = None
+    data = await get_diagnostics_for_config_entry(hass, hass_client, integration)
+    assert data["config_entry"]["subentries"][0]["attributes"] == {}
+    assert data["runtime_data"]["coordinator"]["update_interval_seconds"] is None
+    assert data == snapshot
+    mock_nasa.return_value.devices["200000"] = device

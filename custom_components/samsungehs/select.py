@@ -15,9 +15,17 @@ from pysamsungnasa.protocol.enum import (
     InFsv3042DayOfWeek,
     InUseThermostat,
     SamsungEnum,
+)
+from pysamsungnasa.protocol.enum import (
     InFsv2041WaterLawTypeHeating as InFsv2041WaterLawTypeHeatingEnum,
+)
+from pysamsungnasa.protocol.enum import (
     InFsv2093 as InFsv2093Enum,
+)
+from pysamsungnasa.protocol.enum import (
     InFsv4051 as InFsv4051Enum,
+)
+from pysamsungnasa.protocol.enum import (
     InFsv4053 as InFsv4053Enum,
 )
 from pysamsungnasa.protocol.factory.messages.indoor import (
@@ -30,7 +38,6 @@ from pysamsungnasa.protocol.factory.messages.indoor import (
     InFsv4051,
     InFsv4053,
 )
-from pysamsungnasa.protocol.factory.types import BaseMessage
 
 from .entity import SamsungEhsEntity
 from .helpers import convert_enum_to_select_options
@@ -39,6 +46,7 @@ if TYPE_CHECKING:
     from homeassistant.config_entries import ConfigSubentry
     from homeassistant.core import HomeAssistant
     from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
+    from pysamsungnasa.protocol.factory.types import BaseMessage
 
     from .coordinator import SamsungEhsDataUpdateCoordinator
     from .data import SamsungEhsConfigEntry
@@ -63,7 +71,7 @@ class SamsungEHSSelectEntityDescription(SelectEntityDescription):
     """Describes Samsung EHS select entity."""
 
     message: type[BaseMessage]
-    options: type[SamsungEnum] | None = None
+    options: type[SamsungEnum]
     requires_read: bool = False
 
 
@@ -164,8 +172,6 @@ class SamsungEHSSelect(SamsungEhsEntity, SelectEntity):
     @property
     def current_option(self) -> str | None:
         """Return the current option."""
-        if self._device is None:
-            return None
         if (
             self._message is None
             or self._message.MESSAGE_ID not in self._device.attributes
@@ -175,8 +181,6 @@ class SamsungEHSSelect(SamsungEhsEntity, SelectEntity):
         if value is None:
             return None
         enum_class = self.entity_description.options
-        if enum_class is None:
-            return str(value)
         try:
             member = enum_class(value)
         except ValueError:
@@ -186,14 +190,10 @@ class SamsungEHSSelect(SamsungEhsEntity, SelectEntity):
     @property
     def options(self) -> list[str]:
         """Return the list of available options."""
-        if self.entity_description.options is not None:
-            return convert_enum_to_select_options(self.entity_description.options)
-        return []
+        return convert_enum_to_select_options(self.entity_description.options)
 
     async def async_select_option(self, option: str) -> None:
         """Change the selected option."""
-        if self._message is None or self.entity_description.options is None:
-            return
         for member in self.entity_description.options:
             if member.name.replace("_", " ").lower() == option.lower():
                 await self._device.write_attribute(self._message, value=member)

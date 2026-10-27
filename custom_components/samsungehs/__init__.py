@@ -13,7 +13,6 @@ from typing import TYPE_CHECKING
 from homeassistant.const import CONF_DEVICE, CONF_HOST, CONF_PORT, Platform
 from homeassistant.exceptions import ConfigEntryNotReady
 from homeassistant.helpers import config_validation as cv
-from homeassistant.helpers.typing import ConfigType
 from pysamsungnasa import SamsungNasa
 from pysamsungnasa.protocol.factory.messages.basic import (
     DbCodeMiComMainMessage,
@@ -29,6 +28,7 @@ from .services import async_register_services
 
 if TYPE_CHECKING:
     from homeassistant.core import HomeAssistant
+    from homeassistant.helpers.typing import ConfigType
     from pysamsungnasa.device import NasaDevice
 
 PLATFORMS: list[Platform] = [
@@ -114,8 +114,10 @@ async def async_unload_entry(
     entry: SamsungEhsConfigEntry,
 ) -> bool:
     """Handle removal of an entry."""
+    if not await hass.config_entries.async_unload_platforms(entry, PLATFORMS):
+        return False
     await entry.runtime_data.client.stop()
-    return await hass.config_entries.async_unload_platforms(entry, PLATFORMS)
+    return True
 
 
 async def async_reload_entry(
@@ -123,7 +125,6 @@ async def async_reload_entry(
     entry: SamsungEhsConfigEntry,
 ) -> None:
     """Reload config entry."""
-    await entry.runtime_data.client.stop()
     await hass.config_entries.async_reload(entry.entry_id)
 
 

@@ -127,8 +127,6 @@ class SamsungEHSSwitch(SamsungEhsEntity, SwitchEntity):
     @property
     def is_on(self) -> bool | None:
         """Return true if the switch is on."""
-        if self._device is None:
-            return None
         if (
             self._message is None
             or self._message.MESSAGE_ID not in self._device.attributes
@@ -141,16 +139,12 @@ class SamsungEHSSwitch(SamsungEhsEntity, SwitchEntity):
 
     async def async_turn_on(self, **kwargs: Any) -> None:
         """Turn the switch on."""
-        if self._message is None:
-            return
         await self._device.write_attribute(
             self._message, value=self.entity_description.on_value
         )
 
     async def async_turn_off(self, **kwargs: Any) -> None:
         """Turn the switch off."""
-        if self._message is None:
-            return
         await self._device.write_attribute(
             self._message, value=self.entity_description.off_value
         )
