@@ -9,6 +9,8 @@ __pycache__
 # misc
 .coverage
 coverage.xml
+coverage.json
+htmlcov/
 .ruff_cache
 
 # venvs

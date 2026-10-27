@@ -533,8 +533,6 @@ class SamsungEHSNumber(SamsungEhsEntity, NumberEntity):
     @property
     def native_value(self) -> float | None:
         """Return the current value."""
-        if self._device is None:
-            return None
         if (
             self._message is None
             or self._message.MESSAGE_ID not in self._device.attributes

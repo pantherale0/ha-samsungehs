@@ -1,0 +1,14 @@
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+asyncio_default_fixture_loop_scope = "function"
+addopts = "-p no:respx --strict-markers --disable-socket --allow-unix-socket"
+pythonpath = ["."]
+testpaths = ["tests"]
+
+[tool.coverage.run]
+source = ["custom_components.samsungehs"]
+branch = true
+
+[tool.coverage.report]
+show_missing = true
+exclude_also = ["if TYPE_CHECKING:"]

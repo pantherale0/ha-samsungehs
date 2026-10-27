@@ -62,7 +62,7 @@ HASS_TO_EHS_OP = {v: k for k, v in EHS_OP_TO_HASS.items()}
 
 
 async def async_setup_entry(
-    hass: HomeAssistant,  # noqa: ARG001
+    hass: HomeAssistant,
     entry: SamsungEhsConfigEntry,
     async_add_entities: AddConfigEntryEntitiesCallback,
 ) -> None:
@@ -232,13 +232,13 @@ class SamsungEhsClimate(SamsungEhsEntity, ClimateEntity):
     async def async_added_to_hass(self) -> None:
         """Call when the entity is added to HASS."""
         # We need to add a subscription for the outdoor operation status to determine hvac_action  # noqa: E501
-        self.coordinator.config_entry.runtime_data.client.parser.add_packet_listener(
+        self._subscribe_packet(
             OutdoorOperationStatusMessage.MESSAGE_ID, self._device.handle_packet
         )
-        self.coordinator.config_entry.runtime_data.client.parser.add_packet_listener(
+        self._subscribe_packet(
             OutdoorDefrostStatus.MESSAGE_ID, self._device.handle_packet
         )
-        self.coordinator.config_entry.runtime_data.client.parser.add_packet_listener(
+        self._subscribe_packet(
             OutdoorOperationStatusMessage.MESSAGE_ID,
             self._handle_packet,
         )

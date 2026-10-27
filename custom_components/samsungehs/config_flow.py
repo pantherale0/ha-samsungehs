@@ -54,9 +54,10 @@ class SamsungEhsConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         """Handle a flow reconfiguration."""
         if user_input is not None:
             await self.async_set_unique_id(unique_id=user_input[CONF_DEVICE])
-            self._abort_if_unique_id_configured()
+            self._async_abort_entries_match({CONF_DEVICE: user_input[CONF_DEVICE]})
             return self.async_update_reload_and_abort(
                 self._get_reconfigure_entry(),
+                unique_id=user_input[CONF_DEVICE],
                 data_updates={CONF_DEVICE: user_input[CONF_DEVICE]},
             )
         return self.async_show_form(

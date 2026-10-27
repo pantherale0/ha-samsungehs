@@ -1,124 +1,72 @@
-"""Verify reported override state and temperature availability for both zones."""
-
-from types import SimpleNamespace
+"""Reported external room readings and flags remain independent per zone."""
 
 import pytest
-from homeassistant.components.sensor import SensorDeviceClass, SensorStateClass
-from homeassistant.const import UnitOfTemperature
-from pysamsungnasa.protocol.factory.messages import indoor
+from homeassistant.core import HomeAssistant
+from pytest_homeassistant_custom_component.common import MockConfigEntry
 
-from custom_components.samsungehs.binary_sensor import (
-    INDOOR_ENTITY_DESCRIPTIONS as BINARY_DESCRIPTIONS,
-)
-from custom_components.samsungehs.binary_sensor import (
-    SamsungEhsBinarySensor,
-)
-from custom_components.samsungehs.sensor import (
-    INDOOR_ENTITY_DESCRIPTIONS as SENSOR_DESCRIPTIONS,
-)
-from custom_components.samsungehs.sensor import (
-    SamsungEhsSensor,
-)
+from . import Report, entity_id
 
 
-def make_entities(
-    zone: int,
-) -> tuple[SamsungEhsSensor, SamsungEhsBinarySensor, SimpleNamespace]:
-    """Use real entity classes with a device attribute cache."""
-    device = SimpleNamespace(attributes={})
-    runtime = SimpleNamespace(
-        client=SimpleNamespace(
-            devices={"200000": device}, client=SimpleNamespace(is_connected=True)
-        ),
-        messages_to_read={},
-    )
-    coordinator = SimpleNamespace(
-        config_entry=SimpleNamespace(runtime_data=runtime), last_update_success=True
-    )
-    subentry = SimpleNamespace(unique_id="200000", subentry_id="indoor")
-    sensor = SamsungEhsSensor(
-        coordinator,
-        next(
-            d
-            for d in SENSOR_DESCRIPTIONS
-            if d.key == f"zone_{zone}_external_room_temperature"
-        ),
-        subentry,
-    )
-    binary = SamsungEhsBinarySensor(
-        coordinator,
-        next(
-            d
-            for d in BINARY_DESCRIPTIONS
-            if d.key == f"zone_{zone}_external_room_sensor_enabled"
-        ),
-        subentry,
-    )
-    return sensor, binary, device
-
-
+@pytest.mark.usefixtures("integration")
 @pytest.mark.parametrize(
-    ("zone", "flag", "temperature"),
-    [
-        (1, indoor.InRoomTempSensorMessage, indoor.InRoomTempZone1Message),
-        (2, indoor.InRoomTempSensorZone2Message, indoor.InRoomTempZone2Message),
-    ],
+    ("zone", "flag", "temperature"), [(1, 0x4076, 0x423A), (2, 0x4118, 0x42DA)]
 )
-def test_reported_state_transitions(zone: int, flag: type, temperature: type) -> None:
-    """Unknown, enabled, disabled, and re-enabled reports update each zone."""
-    sensor, binary, device = make_entities(zone)
-    assert binary.available
-    assert binary.is_on is None
-    assert not sensor.available
-    device.attributes[temperature.MESSAGE_ID] = temperature(value=21.4)
-    assert not sensor.available
-    device.attributes[flag.MESSAGE_ID] = flag(value=True)
-    assert binary.is_on is True
-    assert sensor.available
-    assert sensor.native_value == 21.4
-    device.attributes[flag.MESSAGE_ID] = flag(value=False)
-    assert binary.available
-    assert binary.is_on is False
-    assert not sensor.available
-    device.attributes[flag.MESSAGE_ID] = flag(value=True)
-    assert sensor.available
-    assert sensor.native_value == 21.4
-    device.attributes[temperature.MESSAGE_ID] = temperature(value=None)
-    assert not sensor.available
-    assert binary.is_on is True
+async def test_transitions(
+    hass: HomeAssistant, report: Report, zone: int, flag: int, temperature: int
+) -> None:
+    """A valid reading is visible only while its own flag is enabled."""
+    sensor = entity_id(hass, "sensor", f"zone_{zone}_external_room_temperature")
+    binary = entity_id(
+        hass, "binary_sensor", f"zone_{zone}_external_room_sensor_enabled"
+    )
+    assert hass.states.get(sensor).state == "unavailable"
+    assert hass.states.get(binary).state == "unknown"
+    report("200000", temperature, "00d6")
+    report("200000", 0x4118 if zone == 1 else 0x4076, "01")
+    await hass.async_block_till_done()
+    assert hass.states.get(sensor).state == "unavailable"
+    report("200000", flag, "01")
+    await hass.async_block_till_done()
+    assert hass.states.get(sensor).state == "21.4"
+    assert hass.states.get(binary).state == "on"
+    report("200000", flag, "00")
+    await hass.async_block_till_done()
+    assert hass.states.get(sensor).state == "unavailable"
+    assert hass.states.get(binary).state == "off"
+    report("200000", flag, "01")
+    await hass.async_block_till_done()
+    assert hass.states.get(sensor).state == "21.4"
 
 
-@pytest.mark.parametrize("zone", [1, 2])
-def test_metadata_and_polling(zone: int) -> None:
-    """Both dependencies are read without depending on binary sensor activation."""
-    sensor, _, _ = make_entities(zone)
-    assert sensor.native_unit_of_measurement == UnitOfTemperature.CELSIUS
-    assert sensor.device_class == SensorDeviceClass.TEMPERATURE
-    assert sensor.state_class == SensorStateClass.MEASUREMENT
-    assert set(
-        sensor.coordinator.config_entry.runtime_data.messages_to_read["200000"]
-    ) == ({0x4076, 0x423A} if zone == 1 else {0x4118, 0x42DA})
+async def test_poll_dependencies(integration: MockConfigEntry) -> None:
+    """Both zone flags and readings are included in recurring transport reads."""
+    assert {0x4076, 0x423A, 0x4118, 0x42DA} <= set(
+        integration.runtime_data.messages_to_read["200000"]
+    )
 
 
-def test_other_zone_does_not_enable_sensor() -> None:
-    """Zone 2 flags cannot enable zone 1 readings."""
-    sensor, binary, device = make_entities(1)
-    device.attributes[0x4118] = indoor.InRoomTempSensorZone2Message(value=True)
-    device.attributes[0x423A] = indoor.InRoomTempZone1Message(value=21.4)
-    assert binary.is_on is None
-    assert not sensor.available
-
-
-@pytest.mark.parametrize("zone", [1, 2])
-def test_disconnect_and_removed_device(zone: int) -> None:
-    """Losing the device or connection makes both entities unavailable."""
-    sensor, binary, _ = make_entities(zone)
-    runtime = sensor.coordinator.config_entry.runtime_data
-    runtime.client.client.is_connected = False
-    assert not sensor.available
-    assert not binary.available
-    assert binary.is_on is None
-    runtime.client.client.is_connected = True
-    runtime.client.devices.clear()
-    assert not sensor.available
-    assert not binary.available
+@pytest.mark.usefixtures("integration")
+@pytest.mark.parametrize(
+    ("zone", "flag", "temperature"), [(1, 0x4076, 0x423A), (2, 0x4118, 0x42DA)]
+)
+async def test_enabled_without_reading(
+    hass: HomeAssistant, report: Report, zone: int, flag: int, temperature: int
+) -> None:
+    """A true flag without a valid numeric reading does not expose a temperature."""
+    report("200000", flag, "01")
+    report("200000", temperature, None)
+    await hass.async_block_till_done()
+    assert (
+        hass.states.get(
+            entity_id(hass, "sensor", f"zone_{zone}_external_room_temperature")
+        ).state
+        == "unavailable"
+    )
+    assert (
+        hass.states.get(
+            entity_id(
+                hass, "binary_sensor", f"zone_{zone}_external_room_sensor_enabled"
+            )
+        ).state
+        == "on"
+    )

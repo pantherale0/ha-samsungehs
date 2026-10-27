@@ -1,198 +1,176 @@
-"""Exercise external room temperature action validation and notifications."""
+"""External readings are validated and routed by the real HA service dispatcher."""
 
-import asyncio
-from pathlib import Path
-from types import SimpleNamespace
-from unittest.mock import AsyncMock
+from unittest.mock import MagicMock
 
 import probatio as vol
 import pytest
-from homeassistant.config_entries import ConfigEntryState
-from homeassistant.core import HomeAssistant, ServiceCall
+from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import HomeAssistantError, ServiceValidationError
+from homeassistant.setup import async_setup_component
 from pysamsungnasa.protocol.enum import DataType
-from pysamsungnasa.protocol.factory.messages import indoor
+from pytest_homeassistant_custom_component.common import MockConfigEntry
 
-from custom_components.samsungehs.services import (
-    EXTERNAL_ROOM_TEMPERATURE_SCHEMA,
-    async_register_services,
-    async_set_external_room_temperature_service,
-)
+from . import DOMAIN
 
 
-def make_call(**data: object) -> tuple[ServiceCall, AsyncMock]:
-    """Create a service call with a connection and no discovered devices."""
-    send = AsyncMock()
-    entry = SimpleNamespace(
-        domain="samsungehs",
-        state=ConfigEntryState.LOADED,
-        runtime_data=SimpleNamespace(
-            client=SimpleNamespace(
-                send_message=send,
-                client=SimpleNamespace(is_connected=True),
-            )
-        ),
-    )
-    hass = SimpleNamespace(
-        config_entries=SimpleNamespace(
-            async_get_entry=lambda entry_id: entry if entry_id == "connection" else None
-        )
-    )
-    return ServiceCall(
-        hass,
-        "samsungehs",
+async def test_registered_before_entry(hass: HomeAssistant) -> None:
+    """Integration actions register without any loaded device."""
+    assert await async_setup_component(hass, DOMAIN, {})
+    for action in (
         "set_external_room_temperature",
-        {"config_entry_id": "connection", **data},
-    ), send
+        "read_attribute",
+        "write_attribute",
+    ):
+        assert hass.services.has_service(DOMAIN, action)
 
 
+@pytest.mark.usefixtures("integration")
 @pytest.mark.parametrize(
-    ("zone", "flag", "temperature_message"),
+    ("zone", "flag", "temperature_id"), [(1, 0x4076, 0x423A), (2, 0x4118, 0x42DA)]
+)
+@pytest.mark.parametrize(
+    ("enabled", "temperature", "payload"),
     [
-        (1, indoor.InRoomTempSensorMessage, indoor.InRoomTempZone1Message),
-        (2, indoor.InRoomTempSensorZone2Message, indoor.InRoomTempZone2Message),
+        (True, 21.4, b"\x00\xd6"),
+        (True, -10.0, b"\xff\x9c"),
+        (True, -3276.8, b"\x80\x00"),
+        (True, 3276.7, b"\x7f\xff"),
+        (False, None, None),
     ],
 )
-@pytest.mark.parametrize("enabled", [True, False])
-def test_notifications(
-    zone: int, flag: type, temperature_message: type, *, enabled: bool
+async def test_notification(
+    hass: HomeAssistant,
+    mock_nasa: MagicMock,
+    zone: int,
+    flag: int,
+    temperature_id: int,
+    *,
+    enabled: bool,
+    temperature: float | None,
+    payload: bytes | None,
 ) -> None:
-    """Enable with a reading, or disable without publishing a temperature."""
-    call, send = make_call(zone=zone, enabled=enabled, temperature=21.4)
-    asyncio.run(async_set_external_room_temperature_service(call))
-    kwargs = send.await_args.kwargs
-    assert kwargs["destination"] == "B0FF20"
-    assert kwargs["source"] == "510000"
-    assert kwargs["request_type"] == DataType.NOTIFICATION
-    assert [
-        (message.MESSAGE_ID, message.PAYLOAD) for message in kwargs["messages"]
-    ] == (
-        [(flag.MESSAGE_ID, b"\x01"), (temperature_message.MESSAGE_ID, b"\x00\xd6")]
-        if enabled
-        else [(flag.MESSAGE_ID, b"\x00")]
+    """Both zones use literal notification destinations, IDs and signed bytes."""
+    data = {"config_entry_id": "connection", "zone": str(zone), "enabled": enabled}
+    if temperature is not None:
+        data["temperature"] = temperature
+    await hass.services.async_call(
+        DOMAIN, "set_external_room_temperature", data, blocking=True
     )
+    send = mock_nasa.return_value.send_message
     send.assert_awaited_once()
+    args = send.await_args.kwargs
+    assert args["destination"] == "B0FF20"
+    assert args["source"] == "510000"
+    assert args["request_type"] == DataType.NOTIFICATION
+    expected = (
+        [(flag, b"\x01"), (temperature_id, payload)] if enabled else [(flag, b"\x00")]
+    )
+    assert [(m.MESSAGE_ID, m.PAYLOAD) for m in args["messages"]] == expected
 
 
-def test_disable_without_temperature() -> None:
-    """Disabling does not need a reading."""
-    call, send = make_call(zone=1, enabled=False)
-    asyncio.run(async_set_external_room_temperature_service(call))
-    messages = send.await_args.kwargs["messages"]
-    assert [(message.MESSAGE_ID, message.PAYLOAD) for message in messages] == [
-        (0x4076, b"\x00")
-    ]
-
-
-def test_enable_requires_temperature() -> None:
-    """Missing readings fail before sending anything."""
-    call, send = make_call(zone=1, enabled=True)
-    with pytest.raises(ServiceValidationError):
-        asyncio.run(async_set_external_room_temperature_service(call))
-    send.assert_not_called()
-
-
-@pytest.mark.parametrize("error", [ConnectionError, TimeoutError])
-def test_transport_failure(error: type[OSError]) -> None:
-    """Transport failures become translated Home Assistant errors."""
-    call, send = make_call(zone=1, enabled=True, temperature=21.4)
-    send.side_effect = error
-    with pytest.raises(HomeAssistantError) as exc:
-        asyncio.run(async_set_external_room_temperature_service(call))
-    assert exc.value.translation_key == "external_temperature_failed"
-
-
+@pytest.mark.usefixtures("integration")
 @pytest.mark.parametrize(
     "temperature",
     [float("nan"), float("inf"), -float("inf"), True, "bad", 3276.8, -3276.9],
 )
-def test_invalid_temperature(temperature: object) -> None:
-    """Invalid readings cannot reach the service handler."""
+async def test_invalid_temperature(
+    hass: HomeAssistant, mock_nasa: MagicMock, temperature: object
+) -> None:
+    """Invalid readings fail at service validation without sending anything."""
     with pytest.raises(vol.Invalid):
-        vol.Schema(EXTERNAL_ROOM_TEMPERATURE_SCHEMA)(
+        await hass.services.async_call(
+            DOMAIN,
+            "set_external_room_temperature",
             {
                 "config_entry_id": "connection",
                 "zone": 1,
                 "enabled": True,
                 "temperature": temperature,
-            }
+            },
+            blocking=True,
         )
+    mock_nasa.return_value.send_message.assert_not_awaited()
 
 
+@pytest.mark.usefixtures("integration")
 @pytest.mark.parametrize("zone", [0, 3, 1.5, True, "bad"])
-def test_invalid_zone(zone: object) -> None:
-    """Reject unsupported zones without truncating fractional values."""
+async def test_invalid_zone(
+    hass: HomeAssistant, mock_nasa: MagicMock, zone: object
+) -> None:
+    """Fractional and unsupported zones never reach the library."""
     with pytest.raises(vol.Invalid):
-        vol.Schema(EXTERNAL_ROOM_TEMPERATURE_SCHEMA)(
-            {"config_entry_id": "connection", "zone": zone, "enabled": False}
+        await hass.services.async_call(
+            DOMAIN,
+            "set_external_room_temperature",
+            {"config_entry_id": "connection", "zone": zone, "enabled": False},
+            blocking=True,
         )
+    mock_nasa.return_value.send_message.assert_not_awaited()
 
 
-def test_selector_input() -> None:
-    """The select selector supplies zone strings."""
-    assert vol.Schema(EXTERNAL_ROOM_TEMPERATURE_SCHEMA)(
-        {
-            "config_entry_id": "connection",
-            "zone": "2",
-            "enabled": True,
-            "temperature": 21.4,
-        }
-    ) == {
-        "config_entry_id": "connection",
-        "zone": 2,
-        "enabled": True,
-        "temperature": 21.4,
-    }
+@pytest.mark.usefixtures("integration")
+async def test_missing_reading(hass: HomeAssistant, mock_nasa: MagicMock) -> None:
+    """Enabling a sensor requires a temperature and reports a translated error."""
+    with pytest.raises(ServiceValidationError) as exc:
+        await hass.services.async_call(
+            DOMAIN,
+            "set_external_room_temperature",
+            {"config_entry_id": "connection", "zone": 1, "enabled": True},
+            blocking=True,
+        )
+    assert exc.value.translation_key == "external_temperature_required"
+    mock_nasa.return_value.send_message.assert_not_awaited()
 
 
-def test_action_registered_without_loaded_entry(tmp_path: Path) -> None:
-    """The action and validation exist before any device is loaded."""
-
-    async def exercise() -> None:
-        hass = HomeAssistant(str(tmp_path))
-        async_register_services(hass)
-        assert hass.services.has_service("samsungehs", "set_external_room_temperature")
-        with pytest.raises(vol.Invalid):
-            await hass.services.async_call(
-                "samsungehs",
-                "set_external_room_temperature",
-                {"config_entry_id": "connection", "zone": 3, "enabled": False},
-                blocking=True,
-            )
-        await hass.async_stop()
-
-    asyncio.run(exercise())
+@pytest.mark.usefixtures("integration")
+@pytest.mark.parametrize("error", [ConnectionError, TimeoutError])
+async def test_transport_failure(
+    hass: HomeAssistant, mock_nasa: MagicMock, error: type[OSError]
+) -> None:
+    """Transport errors become translated Home Assistant errors."""
+    mock_nasa.return_value.send_message.side_effect = error
+    with pytest.raises(HomeAssistantError) as exc:
+        await hass.services.async_call(
+            DOMAIN,
+            "set_external_room_temperature",
+            {"config_entry_id": "connection", "zone": 1, "enabled": False},
+            blocking=True,
+        )
+    assert exc.value.translation_key == "external_temperature_failed"
 
 
-def test_disconnected_device() -> None:
-    """Do not report success when the library would silently skip the send."""
-    call, send = make_call(zone=1, enabled=False)
-    entry = call.hass.config_entries.async_get_entry("connection")
-    entry.runtime_data.client.client.is_connected = False
-    with pytest.raises(HomeAssistantError):
-        asyncio.run(async_set_external_room_temperature_service(call))
-    send.assert_not_called()
+@pytest.mark.usefixtures("integration")
+async def test_disconnected(hass: HomeAssistant, mock_nasa: MagicMock) -> None:
+    """A disconnected client cannot report a successful broadcast."""
+    mock_nasa.return_value.client._is_connected = False
+    with pytest.raises(HomeAssistantError) as exc:
+        await hass.services.async_call(
+            DOMAIN,
+            "set_external_room_temperature",
+            {"config_entry_id": "connection", "zone": 1, "enabled": False},
+            blocking=True,
+        )
+    assert exc.value.translation_key == "external_temperature_failed"
+    mock_nasa.return_value.send_message.assert_not_awaited()
 
 
-@pytest.mark.parametrize(
-    "state", [ConfigEntryState.NOT_LOADED, ConfigEntryState.LOADED]
-)
-def test_invalid_connection(state: ConfigEntryState) -> None:
-    """Reject unloaded and foreign connections before sending."""
-    call, send = make_call(zone=1, enabled=False)
-    entry = call.hass.config_entries.async_get_entry("connection")
-    entry.state = state
-    if state == ConfigEntryState.LOADED:
-        entry.domain = "other"
-    entry.title = "Connection"
+@pytest.mark.usefixtures("integration")
+@pytest.mark.parametrize("target", ["missing", "unloaded", "foreign"])
+async def test_bad_connection(
+    hass: HomeAssistant, mock_nasa: MagicMock, target: str
+) -> None:
+    """Missing, unloaded and foreign connections cannot fall back to another bus."""
+    if target != "missing":
+        MockConfigEntry(
+            domain="other" if target == "foreign" else DOMAIN,
+            entry_id=target,
+            version=2,
+        ).add_to_hass(hass)
     with pytest.raises(ServiceValidationError):
-        asyncio.run(async_set_external_room_temperature_service(call))
-    send.assert_not_called()
-
-
-def test_missing_connection() -> None:
-    """A removed connection cannot fall back to another bus."""
-    call, send = make_call(config_entry_id="missing", zone=1, enabled=False)
-    with pytest.raises(ServiceValidationError):
-        asyncio.run(async_set_external_room_temperature_service(call))
-    send.assert_not_called()
+        await hass.services.async_call(
+            DOMAIN,
+            "set_external_room_temperature",
+            {"config_entry_id": target, "zone": 1, "enabled": False},
+            blocking=True,
+        )
+    mock_nasa.return_value.send_message.assert_not_awaited()
